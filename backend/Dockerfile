@@ -10,7 +10,7 @@ RUN apt-get update && apt-get install -y \
 
 # Download and setup the watermark tool
 WORKDIR /opt/byewatermark
-RUN wget -q https://github.com/allenk/GeminiWatermarkTool/releases/download/v1.1.0/GeminiWatermarkTool-Linux-x64.zip \
+RUN wget -q https://github.com/allenk/GeminiWatermarkTool/releases/download/v0.1.2/GeminiWatermarkTool-Linux-x64.zip \
     && unzip GeminiWatermarkTool-Linux-x64.zip \
     && chmod +x GeminiWatermarkTool \
     && rm GeminiWatermarkTool-Linux-x64.zip
