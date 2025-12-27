@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - uploads:/tmp/uploads
+      - outputs:/tmp/outputs
+
+  # Optional: nginx for frontend (or use Cloudflare Pages/Vercel)
+  # frontend:
+  #   image: nginx:alpine
+  #   ports:
+  #     - "80:80"
+  #   volumes:
+  #     - ./frontend:/usr/share/nginx/html:ro
+
+volumes:
+  uploads:
+  outputs:
