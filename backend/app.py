@@ -8,7 +8,9 @@ import time
 import threading
 from functools import wraps
 import hashlib
+import hmac
 from dotenv import load_dotenv
+from supabase import create_client, Client
 
 # Load env vars from .env and .env.local
 load_dotenv() 
@@ -34,6 +36,14 @@ def is_origin_allowed(origin):
 # 1. Strict CORS
 CORS(app, resources={r"/api/*": {"origins": "*"}}) # We'll enforce stricter logic in before_request
 
+# Supabase Setup
+SUPABASE_URL = os.environ.get("SUPABASE_URL")
+SUPABASE_KEY = os.environ.get("SUPABASE_SERVICE_KEY")
+supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY) if SUPABASE_URL and SUPABASE_KEY else None
+
+# Lemon Squeezy Setup
+LEMONSQUEEZY_WEBHOOK_SECRET = os.environ.get("LEMONSQUEEZY_WEBHOOK_SECRET")
+
 # 2. Origin/Referer Validation Middleware
 @app.before_request
 def check_security():
@@ -45,15 +55,15 @@ def check_security():
     referer = request.headers.get('Referer')
     client_ip = get_client_ip()
 
-    # Skip check for Health check
-    if request.path == '/api/health':
+    # Skip check for Health check and Webhooks
+    if request.path == '/api/health' or request.path.startswith('/api/webhooks'):
         return
 
     # In Production: Enforce Origin/Referer
     # In Local Dev: We can be more lenient, but let's test logic
     # If Origin is present, it MUST be allowed
     if origin and not is_origin_allowed(origin):
-        logger.warning(f"⛔ Blocked unauthorized Origin: {origin} from IP {client_ip}")
+        # logger.warning(f"⛔ Blocked unauthorized Origin: {origin} from IP {client_ip}") 
         return jsonify({'error': 'Unauthorized Origin'}), 403
 
     # If no Origin (e.g. direct browser navigation or curl), check Referer
@@ -64,7 +74,7 @@ def check_security():
 UPLOAD_FOLDER = '/tmp/uploads'
 OUTPUT_FOLDER = '/tmp/outputs'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'webp'}
-MAX_FILE_SIZE = 10 * 1024 * 1024  # 10MB
+MAX_FILE_SIZE = 25 * 1024 * 1024  # 25MB
 TOOL_PATH = os.environ.get('WATERMARK_TOOL_PATH', '/opt/byewatermark/GeminiWatermarkTool')
 
 # Rate limiting (Redis -> In-Memory Fallback)
@@ -107,7 +117,25 @@ def get_rate_limit_usage(ip):
             
     return rate_limit_store.get(key, 0)
 
-def check_rate_limit(ip):
+# Check User Subscription Status
+def is_pro_user(user_id):
+    if not supabase or not user_id:
+        return False
+    try:
+        # Check profiles table
+        response = supabase.table('profiles').select('is_pro').eq('id', user_id).execute()
+        if response.data and len(response.data) > 0:
+            return response.data[0]['is_pro']
+    except Exception as e:
+        print(f"Supabase Check Error: {e}")
+    return False
+
+def check_rate_limit(ip, user_id=None):
+    # 1. If User is Pro, perform NO LIMIT check
+    if user_id and is_pro_user(user_id):
+        return True # Unlimited
+
+    # 2. Else, check daily limit by IP
     count = get_rate_limit_usage(ip)
     return count < FREE_LIMIT_PER_DAY
 
@@ -143,6 +171,68 @@ def cleanup_old_files():
 # Start cleanup thread
 threading.Thread(target=cleanup_old_files, daemon=True).start()
 
+# --- WEBHOOKS ---
+@app.route('/api/webhooks/lemonsqueezy', methods=['POST'])
+def lemonsqueezy_webhook():
+    if not LEMONSQUEEZY_WEBHOOK_SECRET:
+        return jsonify({'error': 'Server configuration error'}), 500
+
+    # 1. Verify Signature
+    signature = request.headers.get('X-Signature')
+    if not signature:
+        return jsonify({'error': 'No signature'}), 401
+
+    # Digest payload
+    digest = hmac.new(
+        LEMONSQUEEZY_WEBHOOK_SECRET.encode('utf-8'),
+        request.data,
+        hashlib.sha256
+    ).hexdigest()
+
+    if not hmac.compare_digest(digest, signature):
+        return jsonify({'error': 'Invalid signature'}), 401
+
+    # 2. Process Event
+    data = request.json
+    event_name = data.get('meta', {}).get('event_name')
+    payload = data.get('data', {}).get('attributes', {})
+    
+    # Custom Data contains User ID
+    custom_data = data.get('meta', {}).get('custom_data', {})
+    user_id = custom_data.get('user_id')
+
+    print(f"🔔 Webhook received: {event_name} for User {user_id}")
+
+    if not user_id or not supabase:
+        print("⚠️ Missing User ID or Supabase Client")
+        return jsonify({'status': 'ignored'}), 200
+
+    try:
+        if event_name == 'subscription_created' or event_name == 'subscription_updated':
+            status = payload.get('status')
+            # Active statuses: active, on_trial, past_due (usually give grace period)
+            is_active = status in ['active', 'on_trial']
+            
+            supabase.table('profiles').update({
+                'is_pro': is_active,
+                'subscription_id': data.get('data', {}).get('id'),
+                'customer_id': payload.get('customer_id')
+            }).eq('id', user_id).execute()
+            
+            print(f"✅ User {user_id} Updated: Pro={is_active}")
+
+        elif event_name == 'subscription_cancelled' or event_name == 'subscription_expired':
+            supabase.table('profiles').update({
+                'is_pro': False
+            }).eq('id', user_id).execute()
+            print(f"❌ User {user_id} Cancelled Pro")
+
+    except Exception as e:
+        print(f"🔥 Webhook Error: {e}")
+        return jsonify({'error': str(e)}), 500
+
+    return jsonify({'status': 'ok'})
+
 @app.route('/api/health', methods=['GET'])
 def health():
     return jsonify({'status': 'ok'})
@@ -159,9 +249,10 @@ def remaining():
 @app.route('/api/remove', methods=['POST'])
 def remove_watermark():
     ip = get_client_ip()
+    user_id = request.form.get('user_id') # Get User ID from Frontend
     
     # Check rate limit
-    if not check_rate_limit(ip):
+    if not check_rate_limit(ip, user_id):
         return jsonify({
             'error': 'Daily limit reached. Upgrade to Pro for unlimited access.',
             'code': 'RATE_LIMITED'
@@ -183,7 +274,7 @@ def remove_watermark():
     size = file.tell()
     file.seek(0)
     if size > MAX_FILE_SIZE:
-        return jsonify({'error': 'File too large. Max 10MB.'}), 400
+        return jsonify({'error': 'File too large. Max 25MB.'}), 400
     
     try:
         # Save uploaded file

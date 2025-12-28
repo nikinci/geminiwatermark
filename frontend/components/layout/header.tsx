@@ -1,10 +1,12 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { motion, AnimatePresence } from "framer-motion"
-import { Menu, X, Zap } from "lucide-react"
+import { Menu, X, Zap, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { createClient } from "@/lib/supabase/client"
+import { useRouter } from "next/navigation"
 
 const navLinks = [
     { href: "/features", label: "Features" },
@@ -14,6 +16,57 @@ const navLinks = [
 
 export function Header() {
     const [isOpen, setIsOpen] = useState(false)
+    const [user, setUser] = useState<any>(null)
+    const [loading, setLoading] = useState(true)
+    const supabase = createClient()
+    const router = useRouter()
+
+    useEffect(() => {
+        const getUser = async () => {
+            try {
+                const { data: { user }, error } = await supabase.auth.getUser()
+                if (error) throw error;
+
+                if (user) {
+                    const { data: profile } = await supabase
+                        .from('profiles')
+                        .select('is_pro')
+                        .eq('id', user.id)
+                        .single()
+
+                    setUser({ ...user, is_pro: profile?.is_pro ?? false })
+                } else {
+                    setUser(null)
+                }
+            } catch (error) {
+                console.error("Auth error:", error)
+                setUser(null)
+            } finally {
+                setLoading(false)
+            }
+        }
+        getUser()
+
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+            if (session?.user) {
+                const { data: profile } = await supabase
+                    .from('profiles')
+                    .select('is_pro')
+                    .eq('id', session.user.id)
+                    .single()
+                setUser({ ...session.user, is_pro: profile?.is_pro ?? false })
+            } else {
+                setUser(null)
+            }
+        })
+
+        return () => subscription.unsubscribe()
+    }, [supabase])
+
+    const handleSignOut = async () => {
+        await supabase.auth.signOut()
+        router.refresh()
+    }
 
     return (
         <header className="fixed top-0 left-0 right-0 z-50 border-b border-white/5 bg-background/80 backdrop-blur-md">
@@ -36,9 +89,28 @@ export function Header() {
                             {link.label}
                         </Link>
                     ))}
-                    <Button variant="accent" size="sm" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
-                        Remove Watermark
-                    </Button>
+
+                    {!loading && (
+                        <>
+                            {user ? (
+                                <div className="flex items-center gap-4">
+                                    <span className="text-sm text-muted-foreground hidden lg:block">{user.email}</span>
+                                    <Button variant="ghost" size="sm" onClick={handleSignOut}>
+                                        Logout
+                                    </Button>
+                                    {!user.is_pro && (
+                                        <Button variant="accent" size="sm" asChild>
+                                            <Link href="/pricing">Upgrade Pro</Link>
+                                        </Button>
+                                    )}
+                                </div>
+                            ) : (
+                                <Button variant="outline" size="sm" asChild className="border-white/10 hover:bg-white/5">
+                                    <Link href="/login">Login</Link>
+                                </Button>
+                            )}
+                        </>
+                    )}
                 </nav>
 
                 {/* Mobile Toggle */}
@@ -70,9 +142,23 @@ export function Header() {
                                     {link.label}
                                 </Link>
                             ))}
-                            <Button className="w-full" variant="accent" onClick={() => { setIsOpen(false); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>
-                                Remove Watermark
-                            </Button>
+                            <div className="h-px bg-white/5 my-2" />
+                            {!loading && (
+                                <>
+                                    {user ? (
+                                        <>
+                                            <p className="text-sm text-muted-foreground px-2">{user.email}</p>
+                                            <Button variant="ghost" size="sm" onClick={() => { handleSignOut(); setIsOpen(false); }} className="justify-start">
+                                                Logout
+                                            </Button>
+                                        </>
+                                    ) : (
+                                        <Link href="/login" onClick={() => setIsOpen(false)}>
+                                            <Button variant="outline" className="w-full">Login</Button>
+                                        </Link>
+                                    )}
+                                </>
+                            )}
                         </div>
                     </motion.div>
                 )}

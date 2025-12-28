@@ -22,6 +22,7 @@ export function UploadZone({ onFileSelect }: UploadZoneProps) {
         handleDragOver,
         handleDrop,
         handleFileSelect,
+        user,
     } = useUpload({
         onFileAccepted: onFileSelect,
     })
@@ -66,7 +67,7 @@ export function UploadZone({ onFileSelect }: UploadZoneProps) {
                         </h3>
                         <p className="text-sm text-muted-foreground max-w-[280px]">
                             Drag & drop or click to upload. <br />
-                            Support for JPG, PNG, WebP up to 10MB
+                            Support for JPG, PNG, WebP up to 25MB
                         </p>
                     </div>
 
@@ -98,14 +99,37 @@ export function UploadZone({ onFileSelect }: UploadZoneProps) {
                     <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
                     100% Private
                 </div>
-                <div className="flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
-                    Free 3/Day
-                </div>
-                <div className="flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
-                    No Signup
-                </div>
+                {user?.is_pro ? (
+                    <>
+                        <div className="flex items-center gap-2 text-accent font-medium animate-pulse">
+                            <span className="w-1.5 h-1.5 rounded-full bg-accent" />
+                            Unlimited Access
+                        </div>
+                        <div className="flex items-center gap-2 text-accent font-medium">
+                            <span className="w-1.5 h-1.5 rounded-full bg-accent" />
+                            Pro Member
+                        </div>
+                    </>
+                ) : (
+                    <>
+                        <div className="flex items-center gap-2">
+                            <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
+                            Free 3/Day
+                        </div>
+                        {!user && (
+                            <div className="flex items-center gap-2">
+                                <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
+                                No Signup
+                            </div>
+                        )}
+                        {user && (
+                            <div className="flex items-center gap-2">
+                                <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
+                                Basic Plan
+                            </div>
+                        )}
+                    </>
+                )}
             </div>
         </div>
     )

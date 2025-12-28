@@ -3,6 +3,8 @@ import { Inter } from "next/font/google";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import "./globals.css";
+import { Toaster } from "sonner";
+import { Analytics } from "@/components/shared/analytics"
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
@@ -25,8 +27,6 @@ export const metadata: Metadata = {
   },
 };
 
-import { Analytics } from "@/components/shared/analytics"
-
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -38,6 +38,7 @@ export default function RootLayout({
         <Analytics />
         <Header />
         {children}
+        <Toaster theme="dark" position="bottom-right" />
         <Footer />
       </body>
     </html>

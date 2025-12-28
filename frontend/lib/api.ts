@@ -1,13 +1,16 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.geminiwatermark.ai';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
 export async function checkRemaining(): Promise<{ remaining: number; limit: number }> {
     const res = await fetch(`${API_URL}/api/remaining`);
     return res.json();
 }
 
-export async function removeWatermark(file: File): Promise<{ success: boolean; download_id: string; error?: string; code?: string; message?: string }> {
+export async function removeWatermark(file: File, userId?: string): Promise<{ success: boolean; download_id: string; error?: string; code?: string; message?: string }> {
     const formData = new FormData();
     formData.append('file', file);
+    if (userId) {
+        formData.append('user_id', userId);
+    }
 
     const res = await fetch(`${API_URL}/api/remove`, {
         method: 'POST',

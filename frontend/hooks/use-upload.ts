@@ -1,5 +1,6 @@
-import { useState, useCallback, ChangeEvent, DragEvent } from 'react';
+import { useState, useCallback, ChangeEvent, DragEvent, useEffect } from 'react';
 import { removeWatermark, getDownloadUrl, checkRemaining } from '@/lib/api';
+import { createClient } from '@/lib/supabase/client';
 
 
 interface UploadState {
@@ -31,6 +32,7 @@ export function useUpload({ onFileAccepted }: UseUploadProps = {}) {
     });
 
     const [remaining, setRemaining] = useState<number | null>(null);
+    const [user, setUser] = useState<any>(null);
 
     // --- Drag & Drop State ---
     const [isDragging, setIsDragging] = useState(false);
@@ -45,6 +47,28 @@ export function useUpload({ onFileAccepted }: UseUploadProps = {}) {
             console.error('Failed to fetch remaining:', e);
         }
     };
+
+    const fetchUser = async () => {
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+
+        if (user) {
+            const { data: profile } = await supabase
+                .from('profiles')
+                .select('is_pro')
+                .eq('id', user.id)
+                .single()
+
+            setUser({ ...user, is_pro: profile?.is_pro ?? false })
+        } else {
+            setUser(null)
+        }
+    };
+
+    useEffect(() => {
+        fetchUser();
+        fetchRemaining();
+    }, []);
 
     const upload = async (file: File) => {
         trackUpload(); // Track start
@@ -71,7 +95,11 @@ export function useUpload({ onFileAccepted }: UseUploadProps = {}) {
         }, 300);
 
         try {
-            const result = await removeWatermark(file);
+            // Get User ID if logged in
+            const supabase = createClient();
+            const { data: { user } } = await supabase.auth.getUser();
+
+            const result = await removeWatermark(file, user?.id);
 
             clearInterval(progressInterval);
 
@@ -149,9 +177,9 @@ export function useUpload({ onFileAccepted }: UseUploadProps = {}) {
             return;
         }
 
-        // Check file size (e.g. 10MB)
-        if (file.size > 10 * 1024 * 1024) {
-            setDndError('File too large. Max size is 10MB.');
+        // Check file size (e.g. 25MB)
+        if (file.size > 25 * 1024 * 1024) {
+            setDndError('File too large. Max size is 25MB.');
             return;
         }
 
@@ -182,6 +210,7 @@ export function useUpload({ onFileAccepted }: UseUploadProps = {}) {
     return {
         ...state,
         remaining,
+        user,
         upload,
         reset,
         fetchRemaining,

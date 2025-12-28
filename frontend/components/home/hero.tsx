@@ -7,7 +7,7 @@ import { useUpload } from "@/hooks/use-upload"
 import { BeforeAfter } from "./before-after"
 
 export function Hero() {
-    const { upload, status, progress, error, originalPreview, processedPreview, downloadUrl, remaining, fetchRemaining, reset } = useUpload()
+    const { upload, status, progress, error, originalPreview, processedPreview, downloadUrl, remaining, fetchRemaining, reset, user } = useUpload()
 
     const handleFileSelect = async (file: File) => {
         await upload(file)
@@ -51,7 +51,7 @@ export function Hero() {
                         <span className="block mt-2 text-sm text-yellow-500/80 font-medium">
                             Note: This tool removes the visible watermark only. It does NOT remove invisible SynthID watermarks.
                         </span>
-                        {remaining !== null && (
+                        {remaining !== null && !user?.is_pro && (
                             <span className="block mt-4 text-sm text-muted-foreground font-mono bg-white/5 inline-block px-3 py-1 rounded-md border border-white/10">
                                 Remaining credits: <span className="text-accent font-bold">{remaining}</span>/3
                             </span>
