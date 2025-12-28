@@ -126,9 +126,16 @@ def remove_watermark():
                 # Always save back to ensure standardized format (Pillow default JPEG/PNG)
                 # We reuse the input_path. If it was PNG, we might want to ensure it has .png extension,
                 # but the tool handles extensions based on file content usually, or we trust flask extension.
-                # To be safe, let's keep the extension matching the file format Pillow saves.
-                fixed_img.save(input_path)
-                print(f"Pre-processed (Rotated+RGB) {input_filename}")
+                
+                # OPTIMIZATION: Use Max Quality settings to prevent generation loss
+                save_kwargs = {}
+                if img.format == 'JPEG':
+                    save_kwargs = {'quality': 100, 'subsampling': 0}
+                elif img.format == 'WEBP':
+                    save_kwargs = {'quality': 100, 'lossless': True}
+                
+                fixed_img.save(input_path, **save_kwargs)
+                print(f"Pre-processed (Rotated+RGB) {input_filename} with opts {save_kwargs}")
                 
         except Exception as e:
             print(f"Image pre-processing failed: {e}")
