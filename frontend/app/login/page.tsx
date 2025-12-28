@@ -59,7 +59,7 @@ export default function LoginPage() {
                             required
                             placeholder="name@example.com"
                             value={email}
-                            onChange={(e) => setEmail(e.target.value)}
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
                             className="bg-black/50 border-white/10 text-white placeholder:text-gray-500 focus:border-blue-500"
                         />
                     </div>

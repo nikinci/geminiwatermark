@@ -8,7 +8,7 @@ import { useUpload } from "@/hooks/use-upload"
 import { cn } from "@/lib/utils"
 
 interface UploadZoneProps {
-    onFileSelect: (file: File) => void
+    onFileSelect: (files: File[]) => void
 }
 
 export function UploadZone({ onFileSelect }: UploadZoneProps) {
@@ -24,7 +24,7 @@ export function UploadZone({ onFileSelect }: UploadZoneProps) {
         handleFileSelect,
         user,
     } = useUpload({
-        onFileAccepted: onFileSelect,
+        onFilesAccepted: onFileSelect,
     })
 
     return (
@@ -48,6 +48,7 @@ export function UploadZone({ onFileSelect }: UploadZoneProps) {
                     type="file"
                     className="hidden"
                     accept="image/jpeg,image/png,image/webp"
+                    multiple
                     onChange={handleFileSelect}
                 />
 

@@ -37,9 +37,21 @@ def is_origin_allowed(origin):
 CORS(app, resources={r"/api/*": {"origins": "*"}}) # We'll enforce stricter logic in before_request
 
 # Supabase Setup
+# Supabase Setup
 SUPABASE_URL = os.environ.get("SUPABASE_URL")
 SUPABASE_KEY = os.environ.get("SUPABASE_SERVICE_KEY")
-supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY) if SUPABASE_URL and SUPABASE_KEY else None
+
+if not SUPABASE_URL or not SUPABASE_KEY:
+    print("⚠️  WARNING: Supabase credentials not found. Pro user verification will FAIL.")
+    print("   Please set SUPABASE_URL and SUPABASE_SERVICE_KEY in backend/.env.local")
+    supabase = None
+else:
+    try:
+        supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+        print("✅ Connected to Supabase")
+    except Exception as e:
+        print(f"❌ Failed to connect to Supabase: {e}")
+        supabase = None
 
 # Lemon Squeezy Setup
 LEMONSQUEEZY_WEBHOOK_SECRET = os.environ.get("LEMONSQUEEZY_WEBHOOK_SECRET")
