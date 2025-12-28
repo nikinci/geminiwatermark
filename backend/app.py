@@ -21,7 +21,7 @@ TOOL_PATH = os.environ.get('WATERMARK_TOOL_PATH', '/opt/byewatermark/GeminiWater
 
 # Rate limiting (simple in-memory, use Redis in production)
 rate_limit_store = {}
-FREE_LIMIT_PER_DAY = 3
+FREE_LIMIT_PER_DAY = 100
 
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(OUTPUT_FOLDER, exist_ok=True)

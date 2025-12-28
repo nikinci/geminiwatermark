@@ -1,5 +1,6 @@
 import { useState, useCallback, ChangeEvent, DragEvent } from 'react';
 import { removeWatermark, getDownloadUrl, checkRemaining } from '@/lib/api';
+import { normalizeImage } from '@/lib/image';
 
 interface UploadState {
     status: 'idle' | 'uploading' | 'success' | 'error';
@@ -63,7 +64,17 @@ export function useUpload({ onFileAccepted }: UseUploadProps = {}) {
         }, 300);
 
         try {
-            const result = await removeWatermark(file);
+            // Normalize image (strip metadata, fix rotation, convert to standard PNG)
+            // This fixes issues with mobile uploads and prevents compression artifacts
+            let fileToUpload = file;
+            try {
+                fileToUpload = await normalizeImage(file);
+            } catch (normalizationError) {
+                console.warn('Image normalization failed, proceeding with original file:', normalizationError);
+                // Fallback to original file if normalization fails
+            }
+
+            const result = await removeWatermark(fileToUpload);
 
             clearInterval(progressInterval);
 
