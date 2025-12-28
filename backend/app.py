@@ -154,7 +154,12 @@ def remove_watermark():
         output_filename = f"{file_id}_clean.{ext}"
         output_path = os.path.join(OUTPUT_FOLDER, output_filename)
         
+
         # Run the tool
+        if not os.path.exists(TOOL_PATH):
+             print(f"CRITICAL: Tool not found at {TOOL_PATH}")
+             return jsonify({'error': f'Server Config Error: Tool not found at {TOOL_PATH}'}), 500
+
         result = subprocess.run(
             [TOOL_PATH, '-i', input_path, '-o', output_path],
             capture_output=True,
@@ -163,7 +168,8 @@ def remove_watermark():
         )
         
         if result.returncode != 0:
-            return jsonify({'error': 'Processing failed. Try another image.'}), 500
+            print(f"TOOL FAILED: {result.stderr}")
+            return jsonify({'error': f'Tool execution failed: {result.stderr}'}), 500
         
         if not os.path.exists(output_path):
             return jsonify({'error': 'Processing failed. No output generated.'}), 500
