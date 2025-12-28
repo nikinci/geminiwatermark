@@ -107,10 +107,25 @@ export function Hero() {
                     )}
 
                     {status === 'error' && (
-                        <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-8 max-w-lg mx-auto">
-                            <div className="text-red-500 text-5xl mb-4">⚠️</div>
-                            <h3 className="text-xl font-semibold text-red-500 mb-2">Processing Failed</h3>
-                            <p className="text-red-400 mb-6">{error}</p>
+                        <div className={`rounded-xl p-8 max-w-lg mx-auto border ${error?.includes('resolution') ? 'bg-yellow-500/10 border-yellow-500/20' : 'bg-red-500/10 border-red-500/20'}`}>
+                            <div className="text-5xl mb-4">{error?.includes('resolution') ? '⚠️' : '❌'}</div>
+                            <h3 className={`text-xl font-semibold mb-2 ${error?.includes('resolution') ? 'text-yellow-500' : 'text-red-500'}`}>
+                                {error?.includes('resolution') ? 'Image Quality Issue' : 'Processing Failed'}
+                            </h3>
+                            <p className={`${error?.includes('resolution') ? 'text-yellow-200/80' : 'text-red-400'} mb-6`}>
+                                {error}
+                            </p>
+                            {/* Specific advice for low resolution */}
+                            {error?.includes('resolution') && (
+                                <div className="text-sm text-left bg-black/20 p-4 rounded-lg mb-6 space-y-2">
+                                    <p className="font-semibold text-yellow-500">How to fix:</p>
+                                    <ul className="list-disc list-inside space-y-1 text-muted-foreground">
+                                        <li>If on mobile: Select <strong>Actual Size (Gerçek Boyut)</strong> when uploading.</li>
+                                        <li>Do not upload thumbnails or screenshots.</li>
+                                        <li>Download the <strong>original</strong> image from Google Gemini web.</li>
+                                    </ul>
+                                </div>
+                            )}
                             <button
                                 onClick={reset}
                                 className="px-6 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors font-medium"

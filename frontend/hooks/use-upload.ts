@@ -6,6 +6,7 @@ interface UploadState {
     status: 'idle' | 'uploading' | 'success' | 'error';
     progress: number;
     error: string | null;
+    errorCode?: string | null;
     downloadUrl: string | null;
     originalPreview: string | null;
     processedPreview: string | null;
@@ -21,6 +22,7 @@ export function useUpload({ onFileAccepted }: UseUploadProps = {}) {
         status: 'idle',
         progress: 0,
         error: null,
+        errorCode: null,
         downloadUrl: null,
         originalPreview: null,
         processedPreview: null,
@@ -50,6 +52,7 @@ export function useUpload({ onFileAccepted }: UseUploadProps = {}) {
             status: 'uploading',
             progress: 0,
             error: null,
+            errorCode: null,
             downloadUrl: null,
             originalPreview,
             processedPreview: null,
@@ -66,14 +69,6 @@ export function useUpload({ onFileAccepted }: UseUploadProps = {}) {
         try {
             // REVERT: Normalization (re-encoding) causes artifacts/failure in the backend tool
             // We send the original file directly.
-            /*
-            let fileToUpload = file;
-            try {
-              fileToUpload = await normalizeImage(file);
-            } catch (normalizationError) {
-              console.warn('Image normalization failed, proceeding with original file:', normalizationError);
-            }
-            */
 
             const result = await removeWatermark(file);
 
@@ -85,20 +80,24 @@ export function useUpload({ onFileAccepted }: UseUploadProps = {}) {
                     status: 'success',
                     progress: 100,
                     error: null,
+                    errorCode: null,
                     downloadUrl,
                     originalPreview,
                     processedPreview: downloadUrl,
                 });
                 fetchRemaining(); // Update remaining count
             } else {
-                throw new Error(result.error || 'Processing failed');
+                const error = new Error(result.message || result.error || 'Processing failed');
+                (error as any).code = result.code;
+                throw error;
             }
-        } catch (e) {
+        } catch (e: any) {
             clearInterval(progressInterval);
             setState({
                 status: 'error',
                 progress: 0,
-                error: e instanceof Error ? e.message : 'Something went wrong',
+                error: e.message || 'Something went wrong',
+                errorCode: e.code || null,
                 downloadUrl: null,
                 originalPreview: null,
                 processedPreview: null,
@@ -111,6 +110,7 @@ export function useUpload({ onFileAccepted }: UseUploadProps = {}) {
             status: 'idle',
             progress: 0,
             error: null,
+            errorCode: null,
             downloadUrl: null,
             originalPreview: null,
             processedPreview: null,

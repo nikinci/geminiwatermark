@@ -5,7 +5,7 @@ export async function checkRemaining(): Promise<{ remaining: number; limit: numb
     return res.json();
 }
 
-export async function removeWatermark(file: File): Promise<{ success: boolean; download_id: string; error?: string }> {
+export async function removeWatermark(file: File): Promise<{ success: boolean; download_id: string; error?: string; code?: string; message?: string }> {
     const formData = new FormData();
     formData.append('file', file);
 

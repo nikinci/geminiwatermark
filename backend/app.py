@@ -131,15 +131,29 @@ def remove_watermark():
                 # We reuse the input_path. If it was PNG, we might want to ensure it has .png extension,
                 # but the tool handles extensions based on file content usually, or we trust flask extension.
                 
+                # VALIDATION: Check for low resolution (thumbnail/preview images)
+                # The tool requires sufficient resolution to detect the watermark pattern accurately.
+                MIN_DIMENSION = 800
+                if fixed_img.width < MIN_DIMENSION and fixed_img.height < MIN_DIMENSION:
+                     return jsonify({
+                        'error': 'Image resolution too low for accurate removal.',
+                        'code': 'LOW_RESOLUTION',
+                        'message': 'Uploaded image is a low-quality preview (likely from Gemini App). Please upload the original high-res image.'
+                     }), 400
+
                 # OPTIMIZATION: Use Max Quality settings to prevent generation loss
                 save_kwargs = {}
-                if img.format == 'JPEG':
+                # Check format or extension
+                is_jpeg = img.format == 'JPEG' or ext in ['jpg', 'jpeg']
+                is_webp = img.format == 'WEBP' or ext == 'webp'
+                
+                if is_jpeg:
                     save_kwargs = {'quality': 100, 'subsampling': 0}
-                elif img.format == 'WEBP':
+                elif is_webp:
                     save_kwargs = {'quality': 100, 'lossless': True}
                 
                 fixed_img.save(input_path, **save_kwargs)
-                print(f"Pre-processed (Rotated+RGB) {input_filename} with opts {save_kwargs}")
+                print(f"Pre-processed (Rotated+RGB) {input_filename} | Size: {fixed_img.size} | params: {save_kwargs}")
                 
         except Exception as e:
             print(f"Image pre-processing failed: {e}")
@@ -149,18 +163,38 @@ def remove_watermark():
         output_filename = f"{file_id}_clean.{ext}"
         output_path = os.path.join(OUTPUT_FOLDER, output_filename)
         
-
         # Run the tool
         if not os.path.exists(TOOL_PATH):
              print(f"CRITICAL: Tool not found at {TOOL_PATH}")
              return jsonify({'error': f'Server Config Error: Tool not found at {TOOL_PATH}'}), 500
 
+        # Enable verbose logging for the tool (-v)
         result = subprocess.run(
-            [TOOL_PATH, '-i', input_path, '-o', output_path],
+            [TOOL_PATH, '-i', input_path, '-o', output_path, '-v'],
             capture_output=True,
             text=True,
             timeout=60
         )
+        
+        # Log tool output to file for debugging
+        debug_info = f"""
+TIMESTAMP: {time.ctime()}
+FILE: {input_filename}
+SIZE: {fixed_img.size}
+PARAMS: {save_kwargs}
+TOOL_STDOUT:
+{result.stdout}
+TOOL_STDERR:
+{result.stderr}
+---------------------------------------------------
+"""
+        try:
+            with open('/tmp/gemini_debug.log', 'w') as f:
+                f.write(debug_info)
+        except Exception as log_err:
+            print(f"Failed to write debug log: {log_err}")
+
+        print(f"TOOL OUTPUT ({input_filename}):\n{result.stdout}")
         
         if result.returncode != 0:
             print(f"TOOL FAILED: {result.stderr}")
