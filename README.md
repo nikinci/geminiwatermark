@@ -1,173 +1,94 @@
-# ByeWatermark.io - Deployment Guide
+# GeminiWatermark.ai
 
-## Quick Start
+The free AI-powered tool designed to remove Google Gemini's visible logo watermarks.
 
-### 1. Backend (API)
+## 🚀 Quick Start (Recommended)
 
-**Option A: VPS with Docker (Recommended)**
-
-```bash
-# On your VPS (Hetzner €4/mo or DigitalOcean $6/mo)
-git clone <your-repo>
-cd byewatermark
-
-# Build and run
-docker-compose up -d --build
-
-# Check logs
-docker-compose logs -f
-```
-
-**Option B: Direct on VPS**
+The easiest way to run the project locally (Backend + Frontend setup) is using the helper script:
 
 ```bash
-# Install dependencies
-sudo apt update
-sudo apt install python3 python3-pip wget unzip
-
-# Download watermark tool
-cd /opt
-sudo mkdir byewatermark && cd byewatermark
-sudo wget https://github.com/allenk/GeminiWatermarkTool/releases/download/v1.1.0/GeminiWatermarkTool-Linux-x64.zip
-sudo unzip GeminiWatermarkTool-Linux-x64.zip
-sudo chmod +x GeminiWatermarkTool
-
-# Setup app
-cd /home/ubuntu/byewatermark/backend
-pip3 install -r requirements.txt --break-system-packages
-
-# Run with gunicorn
-gunicorn --bind 0.0.0.0:5000 --workers 2 --timeout 120 app:app
+./run-local.sh
 ```
 
-### 2. Frontend
+This script will automatically:
+1.  Download the required AI tool binary.
+2.  Set up a Python virtual environment (`backend/venv`).
+3.  Install backend dependencies (Flask, Pillow, etc.).
+4.  Start the Backend server on port **5001**.
+5.  Guide you to start the Frontend.
 
-**Option A: Cloudflare Pages (Free, Recommended)**
-
-1. Push `frontend/` folder to GitHub
-2. Connect repo to Cloudflare Pages
-3. Deploy settings: just static files, no build needed
-4. Set custom domain: byewatermark.io
-
-**Option B: Vercel**
+After the script finishes setting up the backend, open a **new terminal** window for the frontend:
 
 ```bash
 cd frontend
-npx vercel --prod
+npm run dev
 ```
 
-**Option C: Same VPS with Nginx**
+Visit `http://localhost:3000` to use the app.
+
+---
+
+## 🛠 Manual Setup
+
+If you prefer to set up manually:
+
+### 1. Backend (Python/Flask)
 
 ```bash
-sudo apt install nginx
-sudo cp frontend/index.html /var/www/html/
-sudo systemctl restart nginx
+cd backend
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
 ```
 
-### 3. Domain & SSL Setup
+Download the `GeminiWatermarkTool` binary (ask repo owner for the link) and place it in the `tools/` directory.
 
-**Cloudflare (Recommended)**
-
-1. Add domain to Cloudflare
-2. Update nameservers at registrar
-3. Add DNS records:
-   - `A` record: `@` → your VPS IP (for API)
-   - `CNAME` record: `api` → your VPS IP
-4. Enable SSL/TLS (Full strict)
-5. Enable "Always HTTPS"
-
-**API subdomain:**
-- Point `api.byewatermark.io` to your VPS
-- Update `API_URL` in `index.html`
-
-### 4. Nginx Config (for API)
-
-```nginx
-server {
-    listen 80;
-    server_name api.byewatermark.io;
-
-    location / {
-        proxy_pass http://127.0.0.1:5000;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        client_max_body_size 15M;
-    }
-}
+Run the server:
+```bash
+python app.py
 ```
+*Port: 5001*
 
-### 5. Systemd Service (for auto-restart)
-
-Create `/etc/systemd/system/byewatermark.service`:
-
-```ini
-[Unit]
-Description=ByeWatermark API
-After=network.target
-
-[Service]
-User=ubuntu
-WorkingDirectory=/home/ubuntu/byewatermark/backend
-ExecStart=/usr/local/bin/gunicorn --bind 127.0.0.1:5000 --workers 2 --timeout 120 app:app
-Restart=always
-
-[Install]
-WantedBy=multi-user.target
-```
+### 2. Frontend (Next.js)
 
 ```bash
-sudo systemctl enable byewatermark
-sudo systemctl start byewatermark
+cd frontend
+npm install
+npm run dev
 ```
+*Port: 3000*
 
-## Costs
+---
 
-| Service | Cost |
-|---------|------|
-| VPS (Hetzner CX22) | €4/month |
-| Domain (.io) | ~$35/year |
-| Cloudflare | Free |
-| **Total** | **~$7/month** |
+## 📱 Mobile Testing (Local Network)
 
-## Monetization Ideas
+To test the app from your phone (connected to the same Wi-Fi):
 
-1. **Freemium**: 3 free/day, $2.99/month unlimited
-2. **Pay-per-use**: $0.25/image after free tier
-3. **Ads**: Google AdSense sidebar (less recommended)
+1.  **Find your computer's Local IP** (Settings -> Wi-Fi -> IP Address, e.g., `192.168.1.106`).
+2.  **Update Frontend Config:**
+    Open `frontend/.env.local` and update the API URL to use your IP instead of `localhost`:
+    ```env
+    NEXT_PUBLIC_API_URL=http://192.168.1.106:5001
+    ```
+    *(Replace `192.168.1.106` with your actual IP)*
+3.  **Restart Frontend:** `npm run dev`
+4.  **Visit on Phone:** Open `http://192.168.1.106:3000` in your mobile browser.
 
-## Adding Stripe (for payments)
+---
 
-```bash
-pip install stripe
-```
+## ⚠️ Common Issues
 
-Add to `app.py`:
-```python
-import stripe
-stripe.api_key = 'sk_...'
+### "Processing Failed" with "Low Resolution"
+If you see a yellow warning about "Image Quality Issue":
+*   **Cause:** You uploaded a thumbnail or preview image (e.g., < 800px). The AI tool needs high-resolution patterns to work.
+*   **Fix:**
+    *   **Mobile:** Choose **"Actual Size"** (Gerçek Boyut) when uploading from iOS/Android.
+    *   **Web:** Download the **original** image from Gemini, not the preview.
 
-@app.route('/api/create-checkout', methods=['POST'])
-def create_checkout():
-    session = stripe.checkout.Session.create(
-        payment_method_types=['card'],
-        line_items=[{
-            'price': 'price_xxx',  # Your Stripe price ID
-            'quantity': 1,
-        }],
-        mode='subscription',
-        success_url='https://byewatermark.io/success',
-        cancel_url='https://byewatermark.io/',
-    )
-    return jsonify({'url': session.url})
-```
+### "Failed to fetch" on Mobile
+*   **Cause:** Your phone cannot see `localhost`.
+*   **Fix:** Follow the [Mobile Testing](#mobile-testing-local-network) guide above to use your LAN IP.
 
-## Security Checklist
-
-- [x] Rate limiting (IP-based)
-- [x] File size limits
-- [x] File type validation
-- [x] Auto-cleanup of files
-- [ ] Add CAPTCHA if needed
-- [ ] Use Redis for rate limiting (production)
-- [ ] Add request logging
+### Red/Black Artifacts
+*   **Red:** Image was too small (see Low Resolution above).
+*   **Black:** Tool had issues with Transparency (Alpha channel). The backend now automatically converts images to RGB and maximum quality to prevent this.
