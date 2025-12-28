@@ -13,9 +13,9 @@ export function PricingClient() {
     const LEMON_SQUEEZY_URL = "https://cmoontech.lemonsqueezy.com/checkout/buy/49825ef9-979a-4756-a744-b26b8ea1e57f";
 
     useEffect(() => {
-        const supabase = createClient();
-        const getUser = async () => {
+        const init = async () => {
             try {
+                const supabase = createClient();
                 const { data: { user }, error } = await supabase.auth.getUser();
                 if (error) throw error;
 
@@ -31,13 +31,13 @@ export function PricingClient() {
                     setUser(null)
                 }
             } catch (error) {
-                console.error("Auth error:", error);
+                console.error("Auth initialization error:", error);
                 setUser(null);
             } finally {
                 setLoading(false);
             }
-        }
-        getUser();
+        };
+        init();
     }, []);
 
     return (
