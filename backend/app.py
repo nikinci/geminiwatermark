@@ -172,7 +172,8 @@ def remove_watermark():
     except subprocess.TimeoutExpired:
         return jsonify({'error': 'Processing timeout. Try a smaller image.'}), 500
     except Exception as e:
-        return jsonify({'error': 'Server error. Please try again.'}), 500
+        print(f"CRITICAL SERVER ERROR: {e}")
+        return jsonify({'error': f'Server error: {str(e)}'}), 500
     finally:
         # Cleanup input file
         if os.path.exists(input_path):
