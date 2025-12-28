@@ -42,26 +42,42 @@ export function useUpload({ onFilesAccepted }: UseUploadProps = {}) {
         }
     };
 
-    const fetchUser = async () => {
+    const fetchUser = async (sessionUser: any = null) => {
         const supabase = createClient();
-        const { data: { user } } = await supabase.auth.getUser();
 
-        if (user) {
+        // If sessionUser is not provided, try to get it
+        if (!sessionUser) {
+            const { data } = await supabase.auth.getUser();
+            sessionUser = data.user;
+        }
+
+        if (sessionUser) {
             const { data: profile } = await supabase
                 .from('profiles')
                 .select('is_pro')
-                .eq('id', user.id)
+                .eq('id', sessionUser.id)
                 .single()
 
-            setUser({ ...user, is_pro: profile?.is_pro ?? false })
+            setUser({ ...sessionUser, is_pro: profile?.is_pro ?? false })
         } else {
             setUser(null)
         }
     };
 
     useEffect(() => {
-        fetchUser();
+        const supabase = createClient();
         fetchRemaining();
+
+        // Listen for auth changes
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+            fetchUser(session?.user ?? null);
+        });
+
+        return () => {
+            subscription.unsubscribe();
+        };
+
+        // Initial fetch handled by onAuthStateChange (it fires initial session)
     }, []);
 
     const processItem = async (item: UploadItem, userId?: string) => {
