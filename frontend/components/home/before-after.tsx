@@ -1,14 +1,20 @@
 "use client"
 
 import { useState, useRef, useEffect } from "react"
-import Image from "next/image"
 import { motion } from "framer-motion"
-import { ChevronsLeftRight } from "lucide-react"
+import { ChevronsLeftRight, Download, Check } from "lucide-react"
 
-export function BeforeAfter() {
+interface BeforeAfterProps {
+    originalUrl: string
+    processedUrl: string
+    onDownload?: () => void
+}
+
+export function BeforeAfter({ originalUrl, processedUrl, onDownload }: BeforeAfterProps) {
     const [sliderPosition, setSliderPosition] = useState(50)
     const [isDragging, setIsDragging] = useState(false)
     const containerRef = useRef<HTMLDivElement>(null)
+    const [downloaded, setDownloaded] = useState(false)
 
     const handleMove = (event: MouseEvent | TouchEvent) => {
         if (!containerRef.current) return
@@ -48,26 +54,31 @@ export function BeforeAfter() {
         }
     }, [isDragging])
 
+    const handleDownloadClick = () => {
+        if (onDownload) onDownload()
+        setDownloaded(true)
+        setTimeout(() => setDownloaded(false), 2000)
+    }
+
     return (
-        <section className="py-24 bg-card/50">
+        <section className="py-12 bg-card/50 rounded-3xl border border-border">
             <div className="container mx-auto px-4">
-                <div className="text-center mb-16 space-y-4">
-                    <h2 className="text-3xl md:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-b from-white to-white/60">
-                        See the Magic in Action
+                <div className="text-center mb-8 space-y-4">
+                    <h2 className="text-3xl font-bold text-white">
+                        Watermark Removed!
                     </h2>
-                    <p className="text-muted-foreground max-w-2xl mx-auto text-lg">
-                        Drag the slider to see how AI removes visible watermarks while preserving image quality.
+                    <p className="text-muted-foreground">
+                        Drag the slider to compare.
                     </p>
                 </div>
 
-                <div className="relative max-w-4xl mx-auto aspect-video rounded-3xl overflow-hidden border border-border shadow-2xl">
+                <div className="relative max-w-4xl mx-auto aspect-video rounded-2xl overflow-hidden border border-border shadow-2xl mb-8">
                     <div
                         ref={containerRef}
                         className="relative w-full h-full select-none cursor-ew-resize"
                         onMouseDown={handleMouseDown}
                         onTouchStart={handleMouseDown}
                         onClick={(e) => {
-                            // Allow click to jump
                             const rect = e.currentTarget.getBoundingClientRect()
                             const x = e.clientX - rect.left
                             const pos = (x / rect.width) * 100
@@ -76,25 +87,17 @@ export function BeforeAfter() {
                     >
                         {/* After Image (Background) */}
                         <div className="absolute inset-0">
-                            {/* Placeholder until real image */}
-                            <div className="w-full h-full bg-zinc-900 flex items-center justify-center text-zinc-700">
-                                <span className="text-9xl font-black opacity-20">AFTER</span>
-                            </div>
-                            {/* Real image would be: <Image src="/images/demo-after.jpg" fill alt="After" className="object-cover" /> */}
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={processedUrl} alt="After" className="w-full h-full object-contain bg-zinc-900" />
                         </div>
 
                         {/* Before Image (Foreground - Clipped) */}
                         <div
-                            className="absolute inset-0 bg-zinc-800"
+                            className="absolute inset-0 bg-zinc-900"
                             style={{ clipPath: `polygon(0 0, ${sliderPosition}% 0, ${sliderPosition}% 100%, 0 100%)` }}
                         >
-                            {/* Placeholder until real image */}
-                            <div className="w-full h-full flex items-center justify-center text-zinc-600 relative">
-                                <span className="text-9xl font-black opacity-20">BEFORE</span>
-                                {/* Simulate watermark */}
-                                <div className="absolute inset-0 bg-[url('https://placehold.co/100x100/333/444.png?text=WATERMARK')] opacity-10 mix-blend-overlay"></div>
-                            </div>
-                            {/* Real image would be: <Image src="/images/demo-before.jpg" fill alt="Before" className="object-cover" /> */}
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={originalUrl} alt="Before" className="w-full h-full object-contain" />
                         </div>
 
                         {/* Slider Handle */}
@@ -102,21 +105,32 @@ export function BeforeAfter() {
                             className="absolute top-0 bottom-0 w-1 bg-white cursor-ew-resize z-20 shadow-[0_0_20px_rgba(0,0,0,0.5)]"
                             style={{ left: `${sliderPosition}%` }}
                         >
-                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-lg text-black">
-                                <ChevronsLeftRight className="w-6 h-6" />
+                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 md:w-12 md:h-12 bg-white rounded-full flex items-center justify-center shadow-lg text-black">
+                                <ChevronsLeftRight className="w-4 h-4 md:w-6 md:h-6" />
                             </div>
                         </div>
 
                         {/* Labels */}
-                        <div className="absolute top-8 left-8 bg-black/50 backdrop-blur px-4 py-2 rounded-lg text-sm font-medium z-10 pointer-events-none">
+                        <div className="absolute top-4 left-4 bg-black/60 backdrop-blur px-3 py-1.5 rounded-lg text-xs md:text-sm font-medium z-10 pointer-events-none text-white border border-white/10">
                             Original
                         </div>
-                        <div className="absolute top-8 right-8 bg-black/50 backdrop-blur px-4 py-2 rounded-lg text-sm font-medium z-10 pointer-events-none">
+                        <div className="absolute top-4 right-4 bg-black/60 backdrop-blur px-3 py-1.5 rounded-lg text-xs md:text-sm font-medium z-10 pointer-events-none text-white border border-white/10">
                             Processed
                         </div>
                     </div>
+                </div>
+
+                <div className="flex justify-center">
+                    <button
+                        onClick={handleDownloadClick}
+                        className="inline-flex items-center gap-2 px-8 py-4 bg-accent hover:bg-accent-hover text-white rounded-full font-semibold text-lg transition-all shadow-lg hover:shadow-xl hover:scale-105 active:scale-95"
+                    >
+                        {downloaded ? <Check className="w-5 h-5" /> : <Download className="w-5 h-5" />}
+                        {downloaded ? "Downloaded!" : "Download Image"}
+                    </button>
                 </div>
             </div>
         </section>
     )
 }
+

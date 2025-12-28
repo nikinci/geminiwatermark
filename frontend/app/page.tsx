@@ -13,7 +13,10 @@ export default function Home() {
       <JsonLd />
       <Hero />
       <StatsCounter />
-      <BeforeAfter />
+      <BeforeAfter
+        originalUrl="https://placehold.co/1920x1080/333/fff?text=Original"
+        processedUrl="https://placehold.co/1920x1080/111/fff?text=Processed"
+      />
       <HowItWorks />
       <FeaturesGrid />
       <FAQ />
