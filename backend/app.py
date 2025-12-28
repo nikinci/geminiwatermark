@@ -274,13 +274,43 @@ def contact_form():
             import resend
             resend.api_key = api_key
             
+            # Email Template
+            html_content = f"""
+            <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f4f4f5;">
+              <div style="background-color: #ffffff; padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
+                <div style="text-align: center; border-bottom: 1px solid #e5e7eb; padding-bottom: 20px; margin-bottom: 20px;">
+                    <h2 style="color: #2563eb; margin: 0; font-size: 24px;">GeminiWatermark.ai</h2>
+                    <span style="font-size: 14px; color: #6b7280;">New Contact Message</span>
+                </div>
+                
+                <div style="margin-bottom: 20px;">
+                    <p style="margin: 0; color: #6b7280; font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em;">From</p>
+                    <p style="margin: 4px 0 0; color: #111827; font-weight: 600; font-size: 16px;">{email}</p>
+                </div>
+                
+                <div style="margin-bottom: 24px;">
+                    <p style="margin: 0; color: #6b7280; font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em;">Subject</p>
+                    <p style="margin: 4px 0 0; color: #111827; font-weight: 600; font-size: 16px;">{subject}</p>
+                </div>
+                
+                <div style="background-color: #f9fafb; padding: 20px; border-radius: 8px; border: 1px solid #e5e7eb; color: #374151; line-height: 1.6;">
+                    {message}
+                </div>
+                
+                <div style="margin-top: 24px; text-align: center; color: #9ca3af; font-size: 12px; border-top: 1px solid #e5e7eb; padding-top: 20px;">
+                    Sent via GeminiWatermark Contact Form
+                </div>
+              </div>
+            </div>
+            """
+
             # Send email
             r = resend.Emails.send({
                 "from": "GeminiWatermark Contact <onboarding@resend.dev>",
                 "to": admin_email, # Send TO the admin
                 "reply_to": email,
-                "subject": f"[Contact Form] {subject}",
-                "html": f"<p><strong>From:</strong> {email}</p><p><strong>Subject:</strong> {subject}</p><hr><p>{message}</p>"
+                "subject": f"[GeminiWatermark.ai] {subject}",
+                "html": html_content
             })
             return jsonify({'success': True, 'id': r.get('id')})
         except Exception as e:

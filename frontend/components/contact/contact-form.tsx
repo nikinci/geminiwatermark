@@ -12,7 +12,8 @@ export function ContactForm() {
         setIsLoading(true)
         setStatus('idle')
 
-        const formData = new FormData(e.currentTarget)
+        const form = e.currentTarget
+        const formData = new FormData(form)
         const data = {
             email: formData.get('email'),
             subject: formData.get('subject'),
@@ -32,8 +33,8 @@ export function ContactForm() {
             if (!res.ok) throw new Error('Failed to send')
 
             setStatus('success')
-            // Optional: Reset form
-            e.currentTarget.reset()
+            // Reset form
+            form.reset()
         } catch (error) {
             console.error(error)
             setStatus('error')
