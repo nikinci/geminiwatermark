@@ -26,7 +26,7 @@ TOOL_PATH = os.environ.get('WATERMARK_TOOL_PATH', '/opt/byewatermark/GeminiWater
 
 # Rate limiting (Redis -> In-Memory Fallback)
 rate_limit_store = {}
-FREE_LIMIT_PER_DAY = 100
+FREE_LIMIT_PER_DAY = 3
 
 # Redis Setup
 redis_client = None
