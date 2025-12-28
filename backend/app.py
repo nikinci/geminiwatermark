@@ -110,6 +110,21 @@ def remove_watermark():
         input_filename = f"{file_id}.{ext}"
         input_path = os.path.join(UPLOAD_FOLDER, input_filename)
         file.save(input_path)
+
+        # Handle EXIF orientation (fixes mobile uploads without breaking desktop)
+        try:
+            from PIL import Image, ImageOps
+            with Image.open(input_path) as img:
+                # exif_transpose returns a new image only if rotation is needed
+                fixed_img = ImageOps.exif_transpose(img)
+                if fixed_img is not img:
+                    # Only save if rotation changed, keeping original pixels for desktop (Orientation 1)
+                    # Use original format to minimize changes, but Pillow might re-encode.
+                    # This is acceptable for mobile where rotation failure is the bigger issue.
+                    fixed_img.save(input_path)
+                    print(f"Applied EXIF rotation to {input_filename}")
+        except Exception as e:
+            print(f"EXIF rotation check skipped: {e}")
         
         # Output path
         output_filename = f"{file_id}_clean.{ext}"
