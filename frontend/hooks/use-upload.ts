@@ -1,6 +1,6 @@
 import { useState, useCallback, ChangeEvent, DragEvent } from 'react';
 import { removeWatermark, getDownloadUrl, checkRemaining } from '@/lib/api';
-// import { normalizeImage } from '@/lib/image'; // Disable normalization
+
 
 interface UploadState {
     status: 'idle' | 'uploading' | 'success' | 'error';
@@ -67,9 +67,6 @@ export function useUpload({ onFileAccepted }: UseUploadProps = {}) {
         }, 300);
 
         try {
-            // REVERT: Normalization (re-encoding) causes artifacts/failure in the backend tool
-            // We send the original file directly.
-
             const result = await removeWatermark(file);
 
             clearInterval(progressInterval);

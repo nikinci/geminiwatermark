@@ -153,7 +153,6 @@ def remove_watermark():
                     save_kwargs = {'quality': 100, 'lossless': True}
                 
                 fixed_img.save(input_path, **save_kwargs)
-                print(f"Pre-processed (Rotated+RGB) {input_filename} | Size: {fixed_img.size} | params: {save_kwargs}")
                 
         except Exception as e:
             print(f"Image pre-processing failed: {e}")
@@ -168,33 +167,14 @@ def remove_watermark():
              print(f"CRITICAL: Tool not found at {TOOL_PATH}")
              return jsonify({'error': f'Server Config Error: Tool not found at {TOOL_PATH}'}), 500
 
-        # Enable verbose logging for the tool (-v)
+        # Run the tool
+        # Enable verbose logging only if needed for critical debugging, otherwise standard run
         result = subprocess.run(
-            [TOOL_PATH, '-i', input_path, '-o', output_path, '-v'],
+            [TOOL_PATH, '-i', input_path, '-o', output_path],
             capture_output=True,
             text=True,
             timeout=60
         )
-        
-        # Log tool output to file for debugging
-        debug_info = f"""
-TIMESTAMP: {time.ctime()}
-FILE: {input_filename}
-SIZE: {fixed_img.size}
-PARAMS: {save_kwargs}
-TOOL_STDOUT:
-{result.stdout}
-TOOL_STDERR:
-{result.stderr}
----------------------------------------------------
-"""
-        try:
-            with open('/tmp/gemini_debug.log', 'w') as f:
-                f.write(debug_info)
-        except Exception as log_err:
-            print(f"Failed to write debug log: {log_err}")
-
-        print(f"TOOL OUTPUT ({input_filename}):\n{result.stdout}")
         
         if result.returncode != 0:
             print(f"TOOL FAILED: {result.stderr}")
