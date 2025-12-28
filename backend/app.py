@@ -111,12 +111,7 @@ def remove_watermark():
         input_filename = f"{file_id}.{ext}"
         input_path = os.path.join(UPLOAD_FOLDER, input_filename)
         
-        # Save raw upload first
-        file.save(input_path)
-        input_filename = f"{file_id}.{ext}"
-        input_path = os.path.join(UPLOAD_FOLDER, input_filename)
-        
-        # Save raw upload first
+        # Save raw upload (SINGLE TIME)
         file.save(input_path)
 
         # Pre-process: Fix orientation AND enforce RGB (removes Alpha/RGBA issues)
