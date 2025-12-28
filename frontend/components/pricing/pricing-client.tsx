@@ -13,35 +13,72 @@ export function PricingClient() {
     const LEMON_SQUEEZY_URL = "https://cmoontech.lemonsqueezy.com/checkout/buy/49825ef9-979a-4756-a744-b26b8ea1e57f";
 
     useEffect(() => {
-        const supabase = createClient();
+        let subscription: any = null;
+        let mounted = true;
 
-        async function fetchProfile(sessionUser: any) {
+        const init = async () => {
+            // Debug Env Vars
+            const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+            const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+            if (!url || !key) {
+                console.error("❌ CRITICAL: Supabase Env Vars missing in PricingClient!");
+                console.error("URL:", url ? "Set" : "Missing");
+                console.error("KEY:", key ? "Set" : "Missing");
+                if (mounted) setLoading(false);
+                return;
+            }
+
             try {
-                if (sessionUser) {
-                    const { data: profile } = await supabase
-                        .from('profiles')
-                        .select('is_pro')
-                        .eq('id', sessionUser.id)
-                        .single()
-                    setUser({ ...sessionUser, is_pro: profile?.is_pro ?? false })
-                } else {
-                    setUser(null)
-                }
-            } catch (error) {
-                console.error("Profile fetch error:", error);
-                setUser(null);
-            } finally {
+                const supabase = createClient();
+
+                // Helper to fetch profile
+                const fetchProfile = async (sessionUser: any) => {
+                    try {
+                        if (sessionUser) {
+                            const { data: profile } = await supabase
+                                .from('profiles')
+                                .select('is_pro')
+                                .eq('id', sessionUser.id)
+                                .single()
+                            if (mounted) setUser({ ...sessionUser, is_pro: profile?.is_pro ?? false })
+                        } else {
+                            if (mounted) setUser(null)
+                        }
+                    } catch (error) {
+                        console.error("Profile fetch error:", error);
+                        if (mounted) setUser(null);
+                    }
+                };
+
+                // Listen for auth changes
+                const { data } = supabase.auth.onAuthStateChange((_event, session) => {
+                    fetchProfile(session?.user ?? null).finally(() => {
+                        if (mounted) setLoading(false);
+                    });
+                });
+                subscription = data.subscription;
+
+            } catch (err) {
+                console.error("Supabase client init error:", err);
+                if (mounted) setLoading(false);
+            }
+        };
+
+        init();
+
+        // Safety fallback: Force stop loading after 3 seconds
+        const timer = setTimeout(() => {
+            if (mounted && loading) {
+                console.warn("⚠️ Auth timeout - forcing loading false");
                 setLoading(false);
             }
-        }
-
-        // Listen for auth changes (login, logout, initial session load)
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-            fetchProfile(session?.user ?? null);
-        });
+        }, 3000);
 
         return () => {
-            subscription.unsubscribe();
+            mounted = false;
+            clearTimeout(timer);
+            if (subscription) subscription.unsubscribe();
         };
     }, []);
 
