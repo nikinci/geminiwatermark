@@ -7,6 +7,7 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://geminiwatermark.ai"),
   title: "Remove Gemini Watermark Free - AI Watermark Remover | GeminiWatermark.ai",
   description: "Remove Google Gemini AI visible watermarks instantly. Free online tool to remove logo watermarks from Gemini-generated images. No signup, 100% private.",
   keywords: ["remove gemini watermark", "gemini watermark remover", "google gemini watermark", "ai watermark removal", "imagen 3 watermark"],
