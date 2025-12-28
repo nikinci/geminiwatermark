@@ -38,12 +38,14 @@ CORS(app, resources={r"/api/*": {"origins": "*"}}) # We'll enforce stricter logi
 
 # Supabase Setup
 # Supabase Setup
+# Supabase Setup
+# Supabase Setup
 SUPABASE_URL = os.environ.get("SUPABASE_URL")
-SUPABASE_KEY = os.environ.get("SUPABASE_SERVICE_KEY")
+SUPABASE_KEY = os.environ.get("SUPABASE_SECRET_KEY")
 
 if not SUPABASE_URL or not SUPABASE_KEY:
     print("⚠️  WARNING: Supabase credentials not found. Pro user verification will FAIL.")
-    print("   Please set SUPABASE_URL and SUPABASE_SERVICE_KEY in backend/.env.local")
+    print("   Please set SUPABASE_URL and SUPABASE_SECRET_KEY in backend/.env.local")
     supabase = None
 else:
     try:
