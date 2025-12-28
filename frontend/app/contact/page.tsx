@@ -1,5 +1,5 @@
 import { Metadata } from "next"
-import { Button } from "@/components/ui/button"
+import { ContactForm } from "@/components/contact/contact-form"
 
 export const metadata: Metadata = {
     title: "Contact Us - GeminiWatermark",
@@ -18,46 +18,7 @@ export default function ContactPage() {
                         </p>
                     </div>
 
-                    <form className="space-y-6">
-                        <div className="space-y-2">
-                            <label htmlFor="email" className="text-sm font-medium">Email</label>
-                            <input
-                                type="email"
-                                id="email"
-                                className="w-full px-4 py-2 rounded-lg bg-secondary border border-border focus:ring-2 focus:ring-accent focus:outline-none"
-                                placeholder="you@example.com"
-                                required
-                            />
-                        </div>
-
-                        <div className="space-y-2">
-                            <label htmlFor="subject" className="text-sm font-medium">Subject</label>
-                            <select
-                                id="subject"
-                                className="w-full px-4 py-2 rounded-lg bg-secondary border border-border focus:ring-2 focus:ring-accent focus:outline-none"
-                            >
-                                <option>General Inquiry</option>
-                                <option>Bug Report</option>
-                                <option>Feature Request</option>
-                                <option>Enterprise / API</option>
-                            </select>
-                        </div>
-
-                        <div className="space-y-2">
-                            <label htmlFor="message" className="text-sm font-medium">Message</label>
-                            <textarea
-                                id="message"
-                                rows={5}
-                                className="w-full px-4 py-2 rounded-lg bg-secondary border border-border focus:ring-2 focus:ring-accent focus:outline-none"
-                                placeholder="How can we help?"
-                                required
-                            />
-                        </div>
-
-                        <Button type="submit" className="w-full">
-                            Send Message
-                        </Button>
-                    </form>
+                    <ContactForm />
                 </div>
             </div>
         </main>

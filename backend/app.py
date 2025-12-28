@@ -252,6 +252,45 @@ def download(file_id):
     
     return jsonify({'error': 'File not found or expired'}), 404
 
+@app.route('/api/contact', methods=['POST'])
+def contact_form():
+    data = request.json
+    email = data.get('email')
+    subject = data.get('subject')
+    message = data.get('message')
+
+    if not email or not message:
+        return jsonify({'error': 'Email and Message are required'}), 400
+
+    # Rate Limit Check for Contact Form (reuse IP check)
+    ip = get_client_ip()
+    # Optional: Implement strict rate limit for contact form to prevent spam
+    
+    api_key = os.environ.get('RESEND_API_KEY')
+    admin_email = os.environ.get('ADMIN_EMAIL', 'onboarding@resend.dev') # Default sender if verified
+
+    if api_key:
+        try:
+            import resend
+            resend.api_key = api_key
+            
+            # Send email
+            r = resend.Emails.send({
+                "from": "GeminiWatermark Contact <onboarding@resend.dev>",
+                "to": admin_email, # Send TO the admin
+                "reply_to": email,
+                "subject": f"[Contact Form] {subject}",
+                "html": f"<p><strong>From:</strong> {email}</p><p><strong>Subject:</strong> {subject}</p><hr><p>{message}</p>"
+            })
+            return jsonify({'success': True, 'id': r.get('id')})
+        except Exception as e:
+            logger.error(f"Resend Error: {e}")
+            return jsonify({'error': 'Failed to send email'}), 500
+    else:
+        # Mock send (Log only)
+        logger.info(f"MOCK EMAIL SENT: From={email}, Subject={subject}, Message={message}")
+        return jsonify({'success': True, 'mock': True})
+
 if __name__ == '__main__':
     debug_mode = os.environ.get('FLASK_ENV') == 'development'
     app.run(host='0.0.0.0', port=5001, debug=debug_mode)

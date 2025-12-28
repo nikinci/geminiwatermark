@@ -81,6 +81,15 @@ The app supports two modes for rate limiting:
 *   **Local (Default):** If no `REDIS_URL` is found, it uses **In-Memory** storage (RAM). No setup required.
 *   **Production (Railway):** It automatically connects to Redis if `REDIS_URL` is set.
 
+### 4. Contact Form Configuration (Email)
+
+To enable the Contact Form to send real emails:
+1.  Get a free API Key from [Resend.com](https://resend.com).
+2.  Add `RESEND_API_KEY` to your `backend/.env.local` (local) or Railway Variables (production).
+3.  (Optional) Add `ADMIN_EMAIL` to specify where to receive emails (default: `onboarding@resend.dev` for testing).
+
+*Note: If no API key is provided, the backend will log the message to the console (Mock Mode) instead of sending an email.*
+
 #### Setting up Redis on Railway
 1.  Add a **Redis** service to your Railway project.
 2.  In your **Backend Service**, go to `Variables`.
