@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react"
 import { motion } from "framer-motion"
 import { ChevronsLeftRight, Download, Check } from "lucide-react"
+import { trackDownload } from "@/lib/analytics"
 
 interface BeforeAfterProps {
     originalUrl: string
@@ -55,6 +56,7 @@ export function BeforeAfter({ originalUrl, processedUrl, onDownload }: BeforeAft
     }, [isDragging])
 
     const handleDownloadClick = () => {
+        trackDownload() // Track download
         if (onDownload) onDownload()
         setDownloaded(true)
         setTimeout(() => setDownloaded(false), 2000)

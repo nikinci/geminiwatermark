@@ -16,6 +16,8 @@ interface UseUploadProps {
     onFileAccepted?: (file: File) => void;
 }
 
+import { trackUpload, trackUploadSuccess, trackUploadError } from '@/lib/analytics';
+
 export function useUpload({ onFileAccepted }: UseUploadProps = {}) {
     // --- API / Processing State ---
     const [state, setState] = useState<UploadState>({
@@ -45,6 +47,8 @@ export function useUpload({ onFileAccepted }: UseUploadProps = {}) {
     };
 
     const upload = async (file: File) => {
+        trackUpload(); // Track start
+
         // Create preview of original
         const originalPreview = URL.createObjectURL(file);
 
@@ -82,6 +86,7 @@ export function useUpload({ onFileAccepted }: UseUploadProps = {}) {
                     originalPreview,
                     processedPreview: downloadUrl,
                 });
+                trackUploadSuccess(); // Track success
                 fetchRemaining(); // Update remaining count
             } else {
                 const error = new Error(result.message || result.error || 'Processing failed');
@@ -90,6 +95,7 @@ export function useUpload({ onFileAccepted }: UseUploadProps = {}) {
             }
         } catch (e: any) {
             clearInterval(progressInterval);
+            trackUploadError(e.message || 'Unknown Error'); // Track error
             setState({
                 status: 'error',
                 progress: 0,

@@ -25,6 +25,8 @@ export const metadata: Metadata = {
   },
 };
 
+import { Analytics } from "@/components/shared/analytics"
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -33,6 +35,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.variable} font-sans antialiased bg-background text-foreground`}>
+        <Analytics />
         <Header />
         {children}
         <Footer />
