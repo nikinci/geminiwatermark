@@ -58,8 +58,9 @@ def get_rate_limit_usage(ip):
         try:
             val = redis_client.get(key)
             return int(val) if val else 0
-        except Exception:
-            pass # Fallback to memory on temporary Redis failure
+        except Exception as e:
+            print(f"⚠️ Redis READ error: {e}")
+            pass # Fallback to memory
             
     return rate_limit_store.get(key, 0)
 
@@ -76,7 +77,8 @@ def increment_rate_limit(ip):
             redis_client.incr(key)
             redis_client.expire(key, 86400) # Expire in 24 hours
             return
-        except Exception:
+        except Exception as e:
+            print(f"⚠️ Redis WRITE error: {e}")
             pass
             
     rate_limit_store[key] = rate_limit_store.get(key, 0) + 1
