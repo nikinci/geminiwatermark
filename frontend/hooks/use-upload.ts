@@ -45,22 +45,34 @@ export function useUpload({ onFilesAccepted }: UseUploadProps = {}) {
     const fetchUser = async (sessionUser: any = null) => {
         const supabase = createClient();
 
-        // If sessionUser is not provided, try to get it
-        if (!sessionUser) {
-            const { data } = await supabase.auth.getUser();
-            sessionUser = data.user;
-        }
+        try {
+            // If sessionUser is not provided, try to get it
+            if (!sessionUser) {
+                const { data } = await supabase.auth.getUser();
+                sessionUser = data.user;
+            }
 
-        if (sessionUser) {
-            const { data: profile } = await supabase
-                .from('profiles')
-                .select('is_pro')
-                .eq('id', sessionUser.id)
-                .single()
+            if (sessionUser) {
+                const { data: profile, error } = await supabase
+                    .from('profiles')
+                    .select('is_pro')
+                    .eq('id', sessionUser.id)
+                    .single();
 
-            setUser({ ...sessionUser, is_pro: profile?.is_pro ?? false })
-        } else {
-            setUser(null)
+                if (error) {
+                    console.error("Error fetching profile:", error);
+                    // Fallback: user exists but profile fetch failed (likely RLS). 
+                    // Assume free tier to be safe, but at least set the user object so they are 'logged in'.
+                    setUser({ ...sessionUser, is_pro: false });
+                } else {
+                    setUser({ ...sessionUser, is_pro: profile?.is_pro ?? false });
+                }
+            } else {
+                setUser(null);
+            }
+        } catch (err) {
+            console.error("Unexpected error in fetchUser:", err);
+            setUser(null);
         }
     };
 
