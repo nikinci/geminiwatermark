@@ -107,6 +107,15 @@ def remove_watermark():
         # Save uploaded file
         file_id = str(uuid.uuid4())
         ext = file.filename.rsplit('.', 1)[1].lower()
+        
+        input_filename = f"{file_id}.{ext}"
+        input_path = os.path.join(UPLOAD_FOLDER, input_filename)
+        
+        # Save raw upload first
+        file.save(input_path)
+        input_filename = f"{file_id}.{ext}"
+        input_path = os.path.join(UPLOAD_FOLDER, input_filename)
+        
         # Save raw upload first
         file.save(input_path)
 
