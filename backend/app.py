@@ -107,24 +107,32 @@ def remove_watermark():
         # Save uploaded file
         file_id = str(uuid.uuid4())
         ext = file.filename.rsplit('.', 1)[1].lower()
-        input_filename = f"{file_id}.{ext}"
-        input_path = os.path.join(UPLOAD_FOLDER, input_filename)
+        # Save raw upload first
         file.save(input_path)
 
-        # Handle EXIF orientation (fixes mobile uploads without breaking desktop)
+        # Pre-process: Fix orientation AND enforce RGB (removes Alpha/RGBA issues)
         try:
             from PIL import Image, ImageOps
+            
+            # Open and fix orientation
             with Image.open(input_path) as img:
-                # exif_transpose returns a new image only if rotation is needed
                 fixed_img = ImageOps.exif_transpose(img)
-                if fixed_img is not img:
-                    # Only save if rotation changed, keeping original pixels for desktop (Orientation 1)
-                    # Use original format to minimize changes, but Pillow might re-encode.
-                    # This is acceptable for mobile where rotation failure is the bigger issue.
-                    fixed_img.save(input_path)
-                    print(f"Applied EXIF rotation to {input_filename}")
+                
+                # Force convert to RGB (drops Alpha channel, standardizes format)
+                # This fixes the "black watermark" issue if input was RGBA
+                if fixed_img.mode != 'RGB':
+                    fixed_img = fixed_img.convert('RGB')
+                
+                # Always save back to ensure standardized format (Pillow default JPEG/PNG)
+                # We reuse the input_path. If it was PNG, we might want to ensure it has .png extension,
+                # but the tool handles extensions based on file content usually, or we trust flask extension.
+                # To be safe, let's keep the extension matching the file format Pillow saves.
+                fixed_img.save(input_path)
+                print(f"Pre-processed (Rotated+RGB) {input_filename}")
+                
         except Exception as e:
-            print(f"EXIF rotation check skipped: {e}")
+            print(f"Image pre-processing failed: {e}")
+            # Fallback to raw file if Pillow fails
         
         # Output path
         output_filename = f"{file_id}_clean.{ext}"
