@@ -18,10 +18,11 @@ export function Header() {
     const [isOpen, setIsOpen] = useState(false)
     const [user, setUser] = useState<any>(null)
     const [loading, setLoading] = useState(true)
-    const supabase = createClient()
     const router = useRouter()
 
     useEffect(() => {
+        const supabase = createClient()
+
         const getUser = async () => {
             try {
                 const { data: { user }, error } = await supabase.auth.getUser()
@@ -58,13 +59,16 @@ export function Header() {
             } else {
                 setUser(null)
             }
+            setLoading(false)
         })
 
         return () => subscription.unsubscribe()
-    }, [supabase])
+    }, [])
 
     const handleSignOut = async () => {
+        const supabase = createClient()
         await supabase.auth.signOut()
+        setUser(null)
         router.refresh()
     }
 
