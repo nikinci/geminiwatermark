@@ -74,9 +74,33 @@ To test the app from your phone (connected to the same Wi-Fi):
 3.  **Restart Frontend:** `npm run dev`
 4.  **Visit on Phone:** Open `http://192.168.1.106:3000` in your mobile browser.
 
+### 3. Redis Configuration (Rate Limiting)
+
+The app supports two modes for rate limiting:
+
+*   **Local (Default):** If no `REDIS_URL` is found, it uses **In-Memory** storage (RAM). No setup required.
+*   **Production (Railway):** It automatically connects to Redis if `REDIS_URL` is set.
+
+#### Setting up Redis on Railway
+1.  Add a **Redis** service to your Railway project.
+2.  In your **Backend Service**, go to `Variables`.
+3.  Add `REDIS_URL` with value `${{Redis.REDIS_URL}}` (Reference).
+
+#### Connecting to Cloud Redis Locally (Optional)
+If you want to test with the real production Redis from your computer:
+1.  Create `backend/.env.local`.
+2.  Add `REDIS_URL=redis://...` using the **Public URL** (not the internal one).
+    *   *Note: Using internal URLs like `redis.railway.internal` will fail locally.*
+
 ---
 
 ## ⚠️ Common Issues
+
+### "Redis connection failed" locally
+*   **Cause:** You might be trying to connect to a private/internal Redis URL (e.g., `redis.railway.internal`) from your home internet.
+*   **Fix:**
+    *   **Option 1 (Recommended):** Remove `REDIS_URL` from your local `.env` files. The app will fallback to In-Memory mode.
+    *   **Option 2:** Use the **Public URL** provided by your cloud provider (e.g., `viaduct.proxy.rlwy.net`).
 
 ### "Processing Failed" with "Low Resolution"
 If you see a yellow warning about "Image Quality Issue":

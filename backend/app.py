@@ -8,6 +8,11 @@ import time
 import threading
 from functools import wraps
 import hashlib
+from dotenv import load_dotenv
+
+# Load env vars from .env and .env.local
+load_dotenv() 
+load_dotenv('.env.local')
 
 app = Flask(__name__)
 CORS(app, resources={r"/api/*": {"origins": "*"}})
@@ -19,9 +24,23 @@ ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'webp'}
 MAX_FILE_SIZE = 10 * 1024 * 1024  # 10MB
 TOOL_PATH = os.environ.get('WATERMARK_TOOL_PATH', '/opt/byewatermark/GeminiWatermarkTool')
 
-# Rate limiting (simple in-memory, use Redis in production)
+# Rate limiting (Redis -> In-Memory Fallback)
 rate_limit_store = {}
 FREE_LIMIT_PER_DAY = 100
+
+# Redis Setup
+redis_client = None
+if os.environ.get('REDIS_URL'):
+    try:
+        import redis
+        redis_client = redis.from_url(os.environ.get('REDIS_URL'))
+        redis_client.ping() # Test connection
+        print("✅ Connected to Redis")
+    except Exception as e:
+        print(f"⚠️ Redis connection failed: {e}")
+        redis_client = None
+else:
+    print("ℹ️  No REDIS_URL found. Using In-Memory rate limiting (Local Dev Mode).")
 
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(OUTPUT_FOLDER, exist_ok=True)
@@ -31,15 +50,35 @@ def get_client_ip():
            request.headers.get('X-Forwarded-For', 
            request.remote_addr))
 
-def check_rate_limit(ip):
+def get_rate_limit_usage(ip):
     today = time.strftime('%Y-%m-%d')
-    key = f"{ip}:{today}"
-    count = rate_limit_store.get(key, 0)
+    key = f"rate_limit:{ip}:{today}"
+    
+    if redis_client:
+        try:
+            val = redis_client.get(key)
+            return int(val) if val else 0
+        except Exception:
+            pass # Fallback to memory on temporary Redis failure
+            
+    return rate_limit_store.get(key, 0)
+
+def check_rate_limit(ip):
+    count = get_rate_limit_usage(ip)
     return count < FREE_LIMIT_PER_DAY
 
 def increment_rate_limit(ip):
     today = time.strftime('%Y-%m-%d')
-    key = f"{ip}:{today}"
+    key = f"rate_limit:{ip}:{today}"
+    
+    if redis_client:
+        try:
+            redis_client.incr(key)
+            redis_client.expire(key, 86400) # Expire in 24 hours
+            return
+        except Exception:
+            pass
+            
     rate_limit_store[key] = rate_limit_store.get(key, 0) + 1
 
 def allowed_file(filename):
@@ -66,9 +105,7 @@ def health():
 @app.route('/api/remaining', methods=['GET'])
 def remaining():
     ip = get_client_ip()
-    today = time.strftime('%Y-%m-%d')
-    key = f"{ip}:{today}"
-    used = rate_limit_store.get(key, 0)
+    used = get_rate_limit_usage(ip)
     return jsonify({
         'remaining': max(0, FREE_LIMIT_PER_DAY - used),
         'limit': FREE_LIMIT_PER_DAY
