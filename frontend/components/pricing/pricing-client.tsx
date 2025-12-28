@@ -13,31 +13,36 @@ export function PricingClient() {
     const LEMON_SQUEEZY_URL = "https://cmoontech.lemonsqueezy.com/checkout/buy/49825ef9-979a-4756-a744-b26b8ea1e57f";
 
     useEffect(() => {
-        const init = async () => {
-            try {
-                const supabase = createClient();
-                const { data: { user }, error } = await supabase.auth.getUser();
-                if (error) throw error;
+        const supabase = createClient();
 
-                if (user) {
+        async function fetchProfile(sessionUser: any) {
+            try {
+                if (sessionUser) {
                     const { data: profile } = await supabase
                         .from('profiles')
                         .select('is_pro')
-                        .eq('id', user.id)
+                        .eq('id', sessionUser.id)
                         .single()
-
-                    setUser({ ...user, is_pro: profile?.is_pro ?? false })
+                    setUser({ ...sessionUser, is_pro: profile?.is_pro ?? false })
                 } else {
                     setUser(null)
                 }
             } catch (error) {
-                console.error("Auth initialization error:", error);
+                console.error("Profile fetch error:", error);
                 setUser(null);
             } finally {
                 setLoading(false);
             }
+        }
+
+        // Listen for auth changes (login, logout, initial session load)
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+            fetchProfile(session?.user ?? null);
+        });
+
+        return () => {
+            subscription.unsubscribe();
         };
-        init();
     }, []);
 
     return (
