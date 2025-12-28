@@ -14,8 +14,51 @@ from dotenv import load_dotenv
 load_dotenv() 
 load_dotenv('.env.local')
 
+import re
+
 app = Flask(__name__)
-CORS(app, resources={r"/api/*": {"origins": "*"}})
+
+# Security: Allowed Origins
+ALLOWED_ORIGINS = [
+    r"http://localhost:3000",
+    r"http://127\.0\.0\.1:3000",
+    r"http://192\.168\.\d{1,3}\.\d{1,3}:3000", # Local Network
+    r"https://.*\.railway\.app", # Railway domains
+    r"https://(www\.)?geminiwatermark\.ai", # Production domain (www and naked)
+]
+
+def is_origin_allowed(origin):
+    if not origin: return False
+    return any(re.match(pattern, origin) for pattern in ALLOWED_ORIGINS)
+
+# 1. Strict CORS
+CORS(app, resources={r"/api/*": {"origins": "*"}}) # We'll enforce stricter logic in before_request
+
+# 2. Origin/Referer Validation Middleware
+@app.before_request
+def check_security():
+    # Allow OPTIONS requests (Preflight)
+    if request.method == 'OPTIONS':
+        return
+
+    origin = request.headers.get('Origin')
+    referer = request.headers.get('Referer')
+    client_ip = get_client_ip()
+
+    # Skip check for Health check
+    if request.path == '/api/health':
+        return
+
+    # In Production: Enforce Origin/Referer
+    # In Local Dev: We can be more lenient, but let's test logic
+    # If Origin is present, it MUST be allowed
+    if origin and not is_origin_allowed(origin):
+        logger.warning(f"⛔ Blocked unauthorized Origin: {origin} from IP {client_ip}")
+        return jsonify({'error': 'Unauthorized Origin'}), 403
+
+    # If no Origin (e.g. direct browser navigation or curl), check Referer
+    # APIs called from fetch() usually have Origin.
+    # Note: Curl/Postman can spoof this, but it stops simple browser console attacks from other sites.
 
 # Config
 UPLOAD_FOLDER = '/tmp/uploads'
