@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useEffect, type ReactNode } from 'react'
+import { createContext, useContext, type ReactNode } from 'react'
 import { useAuth as useAuthHook, type UseAuthReturn } from '@/hooks/use-auth'
 
 const AuthContext = createContext<UseAuthReturn | null>(null)
@@ -10,17 +10,6 @@ const AuthContext = createContext<UseAuthReturn | null>(null)
  */
 export function AuthProvider({ children }: { children: ReactNode }) {
     const auth = useAuthHook()
-
-    // Debug: Log when auth state changes
-    useEffect(() => {
-        console.log('🎯 AuthProvider: State changed ->', {
-            user: auth.user?.email ?? 'NULL',
-            is_pro: auth.user?.is_pro,
-            loading: auth.loading,
-            error: auth.error?.message
-        })
-    }, [auth.user, auth.loading, auth.error])
-
     return <AuthContext.Provider value={auth}>{children}</AuthContext.Provider>
 }
 

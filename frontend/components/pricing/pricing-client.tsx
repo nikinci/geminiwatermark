@@ -4,21 +4,11 @@ import { Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { useAuth } from "@/contexts/auth-context"
-import { useEffect } from "react"
 
 export function PricingClient() {
     const { user, loading } = useAuth();
     // Real Lemon Squeezy Product URL
     const LEMON_SQUEEZY_URL = "https://cmoontech.lemonsqueezy.com/checkout/buy/49825ef9-979a-4756-a744-b26b8ea1e57f";
-
-    // Debug: Log user changes
-    useEffect(() => {
-        console.log('🎨 Pricing: User from context ->', {
-            email: user?.email ?? 'NULL',
-            is_pro: user?.is_pro,
-            loading
-        })
-    }, [user, loading])
 
     return (
         <div className="min-h-screen pt-24 pb-12">

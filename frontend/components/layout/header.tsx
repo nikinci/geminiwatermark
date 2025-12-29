@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import Link from "next/link"
 import { motion, AnimatePresence } from "framer-motion"
 import { Menu, X, Zap } from "lucide-react"
@@ -18,15 +18,6 @@ export function Header() {
     const [isOpen, setIsOpen] = useState(false)
     const { user, loading, signOut } = useAuth()
     const router = useRouter()
-
-    // Debug: Log when user changes
-    useEffect(() => {
-        console.log('🎨 Header: Received user from context ->', {
-            email: user?.email ?? 'NULL',
-            is_pro: user?.is_pro,
-            loading
-        })
-    }, [user, loading])
 
     const handleSignOut = async () => {
         try {

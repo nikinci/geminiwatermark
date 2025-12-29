@@ -28,32 +28,27 @@ export function useAuth(): UseAuthReturn {
      * Fetches user profile from database and merges with auth user
      */
     const fetchUserWithProfile = useCallback(async (authUser: User | null, forceRefresh = false): Promise<AppUser | null> => {
-        console.log('🔍 useAuth: fetchUserWithProfile called with user:', authUser?.email ?? 'NULL', 'force:', forceRefresh)
-
         if (!authUser) {
-            console.log('🔍 useAuth: No auth user, returning null')
             lastUserIdRef.current = null
             return null
         }
 
         // If same user and already fetched (and not forcing refresh), return cached user
         if (!forceRefresh && lastUserIdRef.current === authUser.id && user) {
-            console.log('✅ useAuth: Using cached user (same ID)')
             return user
         }
 
-        // Prevent parallel fetches using ref
+        // Prevent parallel fetches
         if (isFetchingRef.current) {
-            console.log('⏸️ useAuth: Already fetching, skipping...')
             return user || ({ ...authUser, is_pro: false } as AppUser)
         }
 
-        // Fetch profile from API route (server-side, no hang!)
-        try {
-            console.log('🔍 useAuth: Fetching profile from API route...')
+        isFetchingRef.current = true
 
+        // Fetch profile from API route (server-side)
+        try {
             const response = await fetch('/api/profile', {
-                credentials: 'include' // Include cookies
+                credentials: 'include'
             })
 
             if (!response.ok) {
@@ -61,14 +56,12 @@ export function useAuth(): UseAuthReturn {
             }
 
             const data = await response.json()
-            console.log('✅ useAuth: Profile fetched from API - is_pro:', data.is_pro)
-
             const userWithProfile = { ...authUser, is_pro: data.is_pro } as AppUser
             lastUserIdRef.current = authUser.id
             isFetchingRef.current = false
             return userWithProfile
         } catch (err) {
-            console.error('❌ useAuth: API route error:', err)
+            console.error('Profile fetch error:', err)
             const fallbackUser = { ...authUser, is_pro: false } as AppUser
             lastUserIdRef.current = authUser.id
             isFetchingRef.current = false
@@ -122,9 +115,7 @@ export function useAuth(): UseAuthReturn {
      */
     const handleAuthStateChange = useCallback(
         async (event: AuthChangeEvent, session: Session | null) => {
-            console.log('🔐 useAuth: Auth state changed:', event, 'user:', session?.user?.email ?? 'NULL')
             const userWithProfile = await fetchUserWithProfile(session?.user ?? null)
-            console.log('🔐 useAuth: Setting user state:', userWithProfile?.email ?? 'NULL', 'is_pro:', userWithProfile?.is_pro)
             setUser(userWithProfile)
             setLoading(false)
         },
@@ -141,7 +132,6 @@ export function useAuth(): UseAuthReturn {
         supabase.auth.getUser()
             .then(async ({ data: { user: authUser }, error: authError }) => {
                 if (authError) {
-                    console.error('❌ useAuth: Initial getUser error:', authError)
                     setError(authError)
                     setUser(null)
                     setLoading(false)
@@ -153,7 +143,6 @@ export function useAuth(): UseAuthReturn {
                 setLoading(false)
             })
             .catch((err) => {
-                console.error('❌ useAuth: Unexpected error in getUser:', err)
                 setError(err instanceof Error ? err : new Error('Auth initialization failed'))
                 setUser(null)
                 setLoading(false)
