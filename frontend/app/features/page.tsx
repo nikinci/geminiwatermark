@@ -5,6 +5,10 @@ export const metadata: Metadata = {
     description: "Learn about our advanced AI technology for removing visible and invisible watermarks from Gemini and Imagen 3 images.",
 }
 
+import { FEATURES } from "@/lib/features-data"
+import Link from "next/link"
+import { ArrowRight } from "lucide-react"
+
 export default function FeaturesPage() {
     return (
         <main className="min-h-screen pt-24 pb-12">
@@ -18,30 +22,22 @@ export default function FeaturesPage() {
                     </div>
 
                     <div className="grid gap-8 md:grid-cols-2">
-                        <div className="p-8 rounded-2xl bg-card border border-border">
-                            <h3 className="text-2xl font-bold mb-4">Visible Watermark Removal</h3>
-                            <p className="text-muted-foreground">
-                                Our models are training to specifically target the visible "Gemini" logo and branding often found in the corners of generated images, ensuring a clean look for your content.
-                            </p>
-                        </div>
-                        <div className="p-8 rounded-2xl bg-card border border-border">
-                            <h3 className="text-2xl font-bold mb-4">Reverse Alpha Blending</h3>
-                            <p className="text-muted-foreground">
-                                For visible text watermarks, we use context-aware inpainting and reverse alpha blending to mathematically subtract the watermark layer while reconstructing the underlying details.
-                            </p>
-                        </div>
-                        <div className="p-8 rounded-2xl bg-card border border-border">
-                            <h3 className="text-2xl font-bold mb-4">Privacy First</h3>
-                            <p className="text-muted-foreground">
-                                We employ a stateless processing architecture. Your images are uploaded to ephemeral RAM storage, processed instantly, and wipes from memory. We never write your user content to disk.
-                            </p>
-                        </div>
-                        <div className="p-8 rounded-2xl bg-card border border-border">
-                            <h3 className="text-2xl font-bold mb-4">Lossless Output</h3>
-                            <p className="text-muted-foreground">
-                                Supports PNG and WebP output to ensure no generation loss. What you upload is what you get back—minus the watermark.
-                            </p>
-                        </div>
+                        {FEATURES.map((feature) => (
+                            <Link
+                                key={feature.slug}
+                                href={`/features/${feature.slug}`}
+                                className="group p-8 rounded-2xl bg-card border border-border hover:border-accent/50 hover:bg-zinc-900/80 transition-all duration-300"
+                            >
+                                <div className="flex items-start justify-between mb-4">
+                                    <feature.icon className="w-8 h-8 text-accent group-hover:scale-110 transition-transform" />
+                                    <ArrowRight className="w-5 h-5 text-muted-foreground group-hover:text-accent group-hover:translate-x-1 transition-all" />
+                                </div>
+                                <h3 className="text-2xl font-bold mb-4">{feature.title}</h3>
+                                <p className="text-muted-foreground">
+                                    {feature.description}
+                                </p>
+                            </Link>
+                        ))}
                     </div>
                 </div>
             </div>

@@ -11,20 +11,20 @@ const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://geminiwatermark.ai"),
-  title: "Remove Gemini Watermark Free - AI Watermark Remover | GeminiWatermark.ai",
-  description: "Remove Google Gemini AI visible watermarks instantly. Free online tool to remove logo watermarks from Gemini-generated images. No signup, 100% private.",
-  keywords: ["remove gemini watermark", "gemini watermark remover", "google gemini watermark", "ai watermark removal", "imagen 3 watermark"],
+  title: "Remove Gemini Watermark Free - #1 AI Watermark Remover | GeminiWatermark.ai",
+  description: "Instantly remove Google Gemini & Imagen 3 watermarks for free. The best online AI watermark remover tool. No signup required. Clean, fast, and 100% private.",
+  keywords: ["remove gemini watermark", "gemini watermark remover", "google gemini watermark", "ai watermark remover", "imagen 3 watermark", "google photos watermark", "clean watermark", "synthid remover"],
   openGraph: {
-    title: "Remove Gemini Watermark Free - AI Watermark Remover",
-    description: "Remove Google Gemini AI visible watermarks instantly. Free online tool to remove logo watermarks from Gemini-generated images.",
+    title: "Remove Gemini Watermark Free - #1 AI Watermark Remover",
+    description: "Instantly remove Google Gemini & Imagen 3 watermarks for free. The best online AI watermark remover tool.",
     url: "https://geminiwatermark.ai",
     siteName: "GeminiWatermark.ai",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Remove Gemini Watermark Free - AI Watermark Remover",
-    description: "Remove Google Gemini AI visible watermarks instantly. Free online tool to remove logo watermarks from Gemini-generated images.",
+    title: "Remove Gemini Watermark Free - #1 AI Watermark Remover",
+    description: "Instantly remove Google Gemini & Imagen 3 watermarks for free. The best online AI watermark remover tool.",
   },
 };
 
