@@ -5,6 +5,7 @@ import { Footer } from "@/components/layout/footer";
 import "./globals.css";
 import { Toaster } from "sonner";
 import { Analytics } from "@/components/shared/analytics"
+import { AuthProvider } from "@/contexts/auth-context"
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
@@ -35,11 +36,13 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.variable} font-sans antialiased bg-background text-foreground`}>
-        <Analytics />
-        <Header />
-        {children}
-        <Toaster theme="dark" position="bottom-right" />
-        <Footer />
+        <AuthProvider>
+          <Analytics />
+          <Header />
+          {children}
+          <Toaster theme="dark" position="bottom-right" />
+          <Footer />
+        </AuthProvider>
       </body>
     </html>
   );

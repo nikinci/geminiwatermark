@@ -3,9 +3,9 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { motion, AnimatePresence } from "framer-motion"
-import { Menu, X, Zap, User } from "lucide-react"
+import { Menu, X, Zap } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { createClient } from "@/lib/supabase/client"
+import { useAuth } from "@/contexts/auth-context"
 import { useRouter } from "next/navigation"
 
 const navLinks = [
@@ -16,60 +16,25 @@ const navLinks = [
 
 export function Header() {
     const [isOpen, setIsOpen] = useState(false)
-    const [user, setUser] = useState<any>(null)
-    const [loading, setLoading] = useState(true)
+    const { user, loading, signOut } = useAuth()
     const router = useRouter()
 
+    // Debug: Log when user changes
     useEffect(() => {
-        const supabase = createClient()
-
-        const getUser = async () => {
-            try {
-                const { data: { user }, error } = await supabase.auth.getUser()
-                if (error) throw error;
-
-                if (user) {
-                    const { data: profile } = await supabase
-                        .from('profiles')
-                        .select('is_pro')
-                        .eq('id', user.id)
-                        .single()
-
-                    setUser({ ...user, is_pro: profile?.is_pro ?? false })
-                } else {
-                    setUser(null)
-                }
-            } catch (error) {
-                console.error("Auth error:", error)
-                setUser(null)
-            } finally {
-                setLoading(false)
-            }
-        }
-        getUser()
-
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-            if (session?.user) {
-                const { data: profile } = await supabase
-                    .from('profiles')
-                    .select('is_pro')
-                    .eq('id', session.user.id)
-                    .single()
-                setUser({ ...session.user, is_pro: profile?.is_pro ?? false })
-            } else {
-                setUser(null)
-            }
-            setLoading(false)
+        console.log('🎨 Header: Received user from context ->', {
+            email: user?.email ?? 'NULL',
+            is_pro: user?.is_pro,
+            loading
         })
-
-        return () => subscription.unsubscribe()
-    }, [])
+    }, [user, loading])
 
     const handleSignOut = async () => {
-        const supabase = createClient()
-        await supabase.auth.signOut()
-        setUser(null)
-        router.refresh()
+        try {
+            await signOut()
+            router.refresh()
+        } catch (error) {
+            console.error("Sign out error:", error)
+        }
     }
 
     return (

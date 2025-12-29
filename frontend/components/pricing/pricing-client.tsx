@@ -3,76 +3,22 @@
 import { Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
-import { useEffect, useState } from "react"
-import { createClient } from "@/lib/supabase/client"
+import { useAuth } from "@/contexts/auth-context"
+import { useEffect } from "react"
 
 export function PricingClient() {
-    const [user, setUser] = useState<any>(null);
-    const [loading, setLoading] = useState(true);
+    const { user, loading } = useAuth();
     // Real Lemon Squeezy Product URL
     const LEMON_SQUEEZY_URL = "https://cmoontech.lemonsqueezy.com/checkout/buy/49825ef9-979a-4756-a744-b26b8ea1e57f";
 
+    // Debug: Log user changes
     useEffect(() => {
-        let subscription: any = null;
-        let mounted = true;
-
-        const supabase = createClient();
-
-        const fetchProfile = async (sessionUser: any) => {
-            if (!sessionUser) {
-                if (mounted) {
-                    setUser(null);
-                    setLoading(false);
-                }
-                return;
-            }
-
-            try {
-                const { data: profile, error } = await supabase
-                    .from('profiles')
-                    .select('is_pro')
-                    .eq('id', sessionUser.id)
-                    .single();
-
-                if (mounted) {
-                    if (error) {
-                        console.error("Profile fetch error:", error);
-                        setUser({ ...sessionUser, is_pro: false });
-                    } else {
-                        setUser({ ...sessionUser, is_pro: profile?.is_pro ?? false });
-                    }
-                    setLoading(false);
-                }
-            } catch (err) {
-                console.error("Unexpected error in fetchProfile:", err);
-                if (mounted) {
-                    setUser({ ...sessionUser, is_pro: false });
-                    setLoading(false);
-                }
-            }
-        };
-
-        // IMMEDIATE: Get current session on mount
-        supabase.auth.getSession().then(({ data: { session } }) => {
-            if (mounted) {
-                fetchProfile(session?.user ?? null);
-            }
-        }).catch((error) => {
-            console.error("getSession error:", error);
-            if (mounted) setLoading(false);
-        });
-
-        // ONGOING: Listen for auth changes (login/logout)
-        const { data } = supabase.auth.onAuthStateChange((_event, session) => {
-            fetchProfile(session?.user ?? null);
-        });
-        subscription = data.subscription;
-
-        return () => {
-            mounted = false;
-            if (subscription) subscription.unsubscribe();
-        };
-    }, []);
+        console.log('🎨 Pricing: User from context ->', {
+            email: user?.email ?? 'NULL',
+            is_pro: user?.is_pro,
+            loading
+        })
+    }, [user, loading])
 
     return (
         <div className="min-h-screen pt-24 pb-12">

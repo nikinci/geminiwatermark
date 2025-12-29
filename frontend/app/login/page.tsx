@@ -17,10 +17,16 @@ export default function LoginPage() {
 
         try {
             const supabase = createClient()
+
+            // Get the origin URL safely (works both in dev and prod)
+            const origin = typeof window !== 'undefined'
+                ? window.location.origin
+                : process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+
             const { error } = await supabase.auth.signInWithOtp({
                 email,
                 options: {
-                    emailRedirectTo: `${location.origin}/auth/callback`,
+                    emailRedirectTo: `${origin}/auth/callback`,
                 },
             })
 

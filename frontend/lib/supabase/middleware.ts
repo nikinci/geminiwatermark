@@ -35,7 +35,19 @@ export async function updateSession(request: NextRequest) {
         }
     )
 
-    await supabase.auth.getUser()
+    try {
+        // Refresh session if expired - this is crucial for SSR
+        const { data: { user }, error } = await supabase.auth.getUser()
+
+        if (error) {
+            console.error('⚠️ Middleware: Failed to get user:', error.message)
+        }
+
+        // User will be null if not authenticated, which is fine
+        // The response already has refreshed cookies if needed
+    } catch (error) {
+        console.error('❌ Middleware: Unexpected error:', error)
+    }
 
     return response
 }

@@ -18,6 +18,14 @@ export function Hero() {
         fetchRemaining()
     }, [])
 
+    // Debug: Log user from useUpload
+    useEffect(() => {
+        console.log('🎨 Hero: User from useUpload ->', {
+            email: user?.email ?? 'NULL',
+            is_pro: user?.is_pro
+        })
+    }, [user])
+
     return (
         <section className="relative pt-20 pb-32 overflow-hidden">
             {/* Background blobs */}

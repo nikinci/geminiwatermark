@@ -1,6 +1,6 @@
 import { useState, useCallback, ChangeEvent, DragEvent, useEffect } from 'react';
 import { removeWatermark, getDownloadUrl, checkRemaining } from '@/lib/api';
-import { createClient } from '@/lib/supabase/client';
+import { useAuth } from '@/contexts/auth-context';
 import { trackUpload, trackUploadSuccess, trackUploadError } from '@/lib/analytics';
 
 export interface UploadItem {
@@ -22,16 +22,14 @@ interface UseUploadProps {
 export function useUpload({ onFilesAccepted }: UseUploadProps = {}) {
     const [items, setItems] = useState<UploadItem[]>([]);
     const [isUploading, setIsUploading] = useState(false);
-
-    // Legacy support (optional, but helper for single-file view)
-    // We can derive "current item" if needed, but Hero will be updated to use `items`.
-
     const [remaining, setRemaining] = useState<number | null>(null);
-    const [user, setUser] = useState<any>(null);
 
     // --- Drag & Drop State ---
     const [isDragging, setIsDragging] = useState(false);
     const [dndError, setDndError] = useState<string | null>(null);
+
+    // Use centralized auth hook
+    const { user } = useAuth();
 
     const fetchRemaining = async () => {
         try {
@@ -42,59 +40,8 @@ export function useUpload({ onFilesAccepted }: UseUploadProps = {}) {
         }
     };
 
-    const fetchUser = async (sessionUser: any = null) => {
-        const supabase = createClient();
-
-        try {
-            // If sessionUser is not provided, try to get it
-            if (!sessionUser) {
-                const { data } = await supabase.auth.getUser();
-                sessionUser = data.user;
-            }
-
-            if (sessionUser) {
-                const { data: profile, error } = await supabase
-                    .from('profiles')
-                    .select('is_pro')
-                    .eq('id', sessionUser.id)
-                    .single();
-
-                if (error) {
-                    console.error("Error fetching profile:", error);
-                    // Fallback: user exists but profile fetch failed (likely RLS). 
-                    // Assume free tier to be safe, but at least set the user object so they are 'logged in'.
-                    setUser({ ...sessionUser, is_pro: false });
-                } else {
-                    setUser({ ...sessionUser, is_pro: profile?.is_pro ?? false });
-                }
-            } else {
-                setUser(null);
-            }
-        } catch (err) {
-            console.error("Unexpected error in fetchUser:", err);
-            setUser(null);
-        }
-    };
-
     useEffect(() => {
-        const supabase = createClient();
         fetchRemaining();
-
-        // IMMEDIATE: Get current session on mount
-        supabase.auth.getSession().then(({ data: { session } }) => {
-            fetchUser(session?.user ?? null);
-        }).catch((error) => {
-            console.error("getSession error in useUpload:", error);
-        });
-
-        // ONGOING: Listen for auth changes (login/logout)
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-            fetchUser(session?.user ?? null);
-        });
-
-        return () => {
-            subscription.unsubscribe();
-        };
     }, []);
 
     const processItem = async (item: UploadItem, userId?: string) => {
