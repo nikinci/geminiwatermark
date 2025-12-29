@@ -4,11 +4,17 @@ import { Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { useAuth } from "@/contexts/auth-context"
+import { trackPricingView, trackSelectPlan } from "@/lib/analytics"
+import { useEffect } from "react"
 
 export function PricingClient() {
     const { user, loading } = useAuth();
     // Real Lemon Squeezy Product URL
     const LEMON_SQUEEZY_URL = "https://cmoontech.lemonsqueezy.com/checkout/buy/49825ef9-979a-4756-a744-b26b8ea1e57f";
+
+    useEffect(() => {
+        trackPricingView()
+    }, [])
 
     return (
         <div className="min-h-screen pt-24 pb-12">
@@ -57,7 +63,7 @@ export function PricingClient() {
                                 </Button>
                             )
                         ) : (
-                            <Button className="w-full" variant="outline" asChild>
+                            <Button className="w-full" variant="outline" asChild onClick={() => trackSelectPlan('free')}>
                                 <Link href="/">Start Free</Link>
                             </Button>
                         )}
@@ -97,7 +103,7 @@ export function PricingClient() {
                             user ? (
                                 user.is_pro ? (
                                     <Button className="w-full" variant="outline" asChild>
-                                        <a href="https://app.lemonsqueezy.com/my-orders" target="_blank" rel="noopener noreferrer">
+                                        <a href="https://app.lemonsqueezy.com/my-orders" target="_blank" rel="noopener noreferrer" onClick={() => trackSelectPlan('manage_subscription')}>
                                             Manage Subscription
                                         </a>
                                     </Button>
@@ -107,13 +113,14 @@ export function PricingClient() {
                                             href={`${LEMON_SQUEEZY_URL}?checkout[custom][user_id]=${user.id}&checkout[email]=${user.email}`}
                                             target="_blank"
                                             rel="noopener noreferrer"
+                                            onClick={() => trackSelectPlan('pro_checkout')}
                                         >
                                             Subscribe Now
                                         </a>
                                     </Button>
                                 )
                             ) : (
-                                <Button className="w-full" variant="accent" asChild>
+                                <Button className="w-full" variant="accent" asChild onClick={() => trackSelectPlan('subscribe_login')}>
                                     <Link href="/login">Login to Subscribe</Link>
                                 </Button>
                             )
@@ -146,7 +153,7 @@ export function PricingClient() {
                                 On-premise option
                             </li>
                         </ul>
-                        <Button className="w-full" variant="outline" asChild>
+                        <Button className="w-full" variant="outline" asChild onClick={() => trackSelectPlan('contact_enterprise')}>
                             <Link href="/contact">Contact Sales</Link>
                         </Button>
                     </div>

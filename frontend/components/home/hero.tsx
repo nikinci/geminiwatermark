@@ -5,6 +5,7 @@ import { useEffect } from "react"
 import { UploadZone } from "./upload-zone"
 import { useUpload } from "@/hooks/use-upload"
 import { BeforeAfter } from "./before-after"
+import { trackDownload, trackProcessAnother, trackTryAgain } from "@/lib/analytics"
 
 export function Hero() {
     const { upload, items, isUploading, error, remaining, fetchRemaining, reset, user } = useUpload()
@@ -97,11 +98,15 @@ export function Hero() {
                                         originalUrl={items[0].originalPreview}
                                         processedUrl={items[0].processedPreview}
                                         onDownload={() => {
+                                            trackDownload()
                                             if (items[0].downloadUrl) window.open(items[0].downloadUrl, '_blank');
                                         }}
                                     />
                                     <button
-                                        onClick={reset}
+                                        onClick={() => {
+                                            trackProcessAnother()
+                                            reset()
+                                        }}
                                         className="text-muted-foreground hover:text-white underline underline-offset-4 text-sm transition-colors"
                                     >
                                         Process another image
@@ -130,7 +135,10 @@ export function Hero() {
                                         </div>
                                     )}
                                     <button
-                                        onClick={reset}
+                                        onClick={() => {
+                                            trackTryAgain()
+                                            reset()
+                                        }}
                                         className="px-6 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors font-medium"
                                     >
                                         Try Again
@@ -146,7 +154,10 @@ export function Hero() {
                             <div className="flex items-center justify-center gap-4 mb-4">
                                 <h2 className="text-2xl font-bold">Batch Processing ({items.length})</h2>
                                 <button
-                                    onClick={reset}
+                                    onClick={() => {
+                                        trackProcessAnother()
+                                        reset()
+                                    }}
                                     className="text-sm text-muted-foreground hover:text-white underline"
                                 >
                                     Clear All
@@ -196,6 +207,7 @@ export function Hero() {
                                                         href={item.downloadUrl || '#'}
                                                         target="_blank"
                                                         rel="noopener noreferrer"
+                                                        onClick={() => trackDownload()}
                                                         className="px-4 py-2 bg-accent text-white text-sm rounded-lg font-medium hover:bg-accent/90 transition-transform hover:scale-105"
                                                     >
                                                         Download

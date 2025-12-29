@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
+import { trackLoginSubmit, trackMagicLinkSent, trackLoginError } from '@/lib/analytics'
 
 export default function LoginPage() {
     const [email, setEmail] = useState('')
@@ -13,6 +14,7 @@ export default function LoginPage() {
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault()
+        trackLoginSubmit()
         setLoading(true)
 
         try {
@@ -31,11 +33,14 @@ export default function LoginPage() {
             })
 
             if (error) {
+                trackLoginError(error.message)
                 toast.error('Login failed: ' + error.message)
             } else {
+                trackMagicLinkSent()
                 toast.success('Magic link sent! Check your email.')
             }
-        } catch (error) {
+        } catch (error: any) {
+            trackLoginError(error.message || 'Unknown error')
             toast.error('An error occurred.')
         } finally {
             setLoading(false)
