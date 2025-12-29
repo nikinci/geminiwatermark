@@ -7,6 +7,8 @@ export interface Feature {
     description: string
     longDescription: string
     benefits: string[]
+    useCases: string[]
+    faq: { question: string; answer: string }[]
 }
 
 export const FEATURES: Feature[] = [
@@ -21,6 +23,21 @@ export const FEATURES: Feature[] = [
             "Global edge network",
             "Parallel processing for batch uploads",
             "Instant preview generation"
+        ],
+        useCases: [
+            "E-commerce sellers needing to clean up product photos quickly.",
+            "Content creators generating dozens of AI images daily.",
+            "Designers who need a clean base image for further editing."
+        ],
+        faq: [
+            {
+                question: "How is it so fast?",
+                answer: "We use lightweight, specialized AI models deployed on edge servers close to your location, minimizing latency."
+            },
+            {
+                question: "Does speed affect quality?",
+                answer: "Not at all. Our model is optimized for both speed and precision, ensuring high-quality output every time."
+            }
         ]
     },
     {
@@ -34,6 +51,21 @@ export const FEATURES: Feature[] = [
             "No disk storage",
             "Auto-deletion after processing",
             "TLS encryption in transit"
+        ],
+        useCases: [
+            "Enterprise users working with confidential assets.",
+            "Privacy-conscious individuals who don't want their photos stored.",
+            "Legal and medical professionals requiring strict data handling."
+        ],
+        faq: [
+            {
+                question: "Do you train AI on my images?",
+                answer: "Absolutely not. Your images are deleted immediately after processing and are never used for training."
+            },
+            {
+                question: "Is data encrypted?",
+                answer: "Yes, all data transfer is protected by industry-standard TLS encryption."
+            }
         ]
     },
     {
@@ -47,6 +79,21 @@ export const FEATURES: Feature[] = [
             "Original resolution maintained",
             "Support for 4K+ images",
             "ICC profile preservation"
+        ],
+        useCases: [
+            "Photographers needing high-res outputs for print.",
+            "Digital artists working with 4K+ midjourney or stable diffusion generations.",
+            "Marketing agencies requiring pristine assets for campaigns."
+        ],
+        faq: [
+            {
+                question: "Does it support 4K images?",
+                answer: "Yes, we support high-resolution images up to 4K and beyond without downscaling."
+            },
+            {
+                question: "What file formats are supported?",
+                answer: "We support processing of JPG, PNG, and WebP formats, maintaining the original format in the output."
+            }
         ]
     },
     {
@@ -60,6 +107,21 @@ export const FEATURES: Feature[] = [
             "Handles semi-transparent overlays",
             "Removes corner badges",
             "Updated for Imagen 3"
+        ],
+        useCases: [
+            "Users of Google's Gemini Advanced for image generation.",
+            "Developers integrating Imagen 3 API outputs.",
+            "Bloggers using Gemini-generated illustrations."
+        ],
+        faq: [
+            {
+                question: "Does it work with SynthID?",
+                answer: "No, this tool removes visible watermarks only. Invisible watermarks like SynthID are embedded at the pixel level and remain."
+            },
+            {
+                question: "Why is it better than generic removers?",
+                answer: "Generic tools often smudge the area. Our model knows exactly what the Gemini logo looks like and how to reconstruct the texture behind it."
+            }
         ]
     },
     {
@@ -73,6 +135,21 @@ export const FEATURES: Feature[] = [
             "No email spam",
             "No credit card required for free tier",
             "Anonymous usage"
+        ],
+        useCases: [
+            "Quick one-off tasks where speed is key.",
+            "Users testing the tool capabilities before committing.",
+            "Students and researchers needing quick results."
+        ],
+        faq: [
+            {
+                question: "Is there a limit on free use?",
+                answer: "Yes, you can process up to 3 images per day for free without any account."
+            },
+            {
+                question: "What if I need more?",
+                answer: "For unlimited bulk processing, you can sign into a free account or upgrade to Pro."
+            }
         ]
     },
     {
@@ -86,6 +163,21 @@ export const FEATURES: Feature[] = [
             "Works on iOS and Android",
             "Fast loading on mobile networks",
             "Touch-friendly controls"
+        ],
+        useCases: [
+            "Social media managers posting directly from mobile.",
+            "Casual users editing photos on the go.",
+            "Tablet users (iPad/Android) wanting a desktop-class experience."
+        ],
+        faq: [
+            {
+                question: "Do I need an app?",
+                answer: "No app required! It works directly in Chrome, Safari, or any mobile browser."
+            },
+            {
+                question: "Is it as fast as desktop?",
+                answer: "Yes, since processing happens in the cloud, your phone's speed doesn't matter. It's lightning fast everywhere."
+            }
         ]
     }
 ]
