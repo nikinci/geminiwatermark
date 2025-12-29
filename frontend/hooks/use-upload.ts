@@ -80,7 +80,14 @@ export function useUpload({ onFilesAccepted }: UseUploadProps = {}) {
         const supabase = createClient();
         fetchRemaining();
 
-        // Listen for auth changes
+        // IMMEDIATE: Get current session on mount
+        supabase.auth.getSession().then(({ data: { session } }) => {
+            fetchUser(session?.user ?? null);
+        }).catch((error) => {
+            console.error("getSession error in useUpload:", error);
+        });
+
+        // ONGOING: Listen for auth changes (login/logout)
         const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
             fetchUser(session?.user ?? null);
         });
@@ -88,8 +95,6 @@ export function useUpload({ onFilesAccepted }: UseUploadProps = {}) {
         return () => {
             subscription.unsubscribe();
         };
-
-        // Initial fetch handled by onAuthStateChange (it fires initial session)
     }, []);
 
     const processItem = async (item: UploadItem, userId?: string) => {

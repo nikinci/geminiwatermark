@@ -16,68 +16,60 @@ export function PricingClient() {
         let subscription: any = null;
         let mounted = true;
 
-        const init = async () => {
-            // Debug Env Vars
-            const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-            const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+        const supabase = createClient();
 
-            if (!url || !key) {
-                console.error("❌ CRITICAL: Supabase Env Vars missing in PricingClient!");
-                console.error("URL:", url ? "Set" : "Missing");
-                console.error("KEY:", key ? "Set" : "Missing");
-                if (mounted) setLoading(false);
+        const fetchProfile = async (sessionUser: any) => {
+            if (!sessionUser) {
+                if (mounted) {
+                    setUser(null);
+                    setLoading(false);
+                }
                 return;
             }
 
             try {
-                const supabase = createClient();
+                const { data: profile, error } = await supabase
+                    .from('profiles')
+                    .select('is_pro')
+                    .eq('id', sessionUser.id)
+                    .single();
 
-                // Helper to fetch profile
-                const fetchProfile = async (sessionUser: any) => {
-                    try {
-                        if (sessionUser) {
-                            const { data: profile } = await supabase
-                                .from('profiles')
-                                .select('is_pro')
-                                .eq('id', sessionUser.id)
-                                .single()
-                            if (mounted) setUser({ ...sessionUser, is_pro: profile?.is_pro ?? false })
-                        } else {
-                            if (mounted) setUser(null)
-                        }
-                    } catch (error) {
+                if (mounted) {
+                    if (error) {
                         console.error("Profile fetch error:", error);
-                        if (mounted) setUser(null);
+                        setUser({ ...sessionUser, is_pro: false });
+                    } else {
+                        setUser({ ...sessionUser, is_pro: profile?.is_pro ?? false });
                     }
-                };
-
-                // Listen for auth changes
-                const { data } = supabase.auth.onAuthStateChange((_event, session) => {
-                    fetchProfile(session?.user ?? null).finally(() => {
-                        if (mounted) setLoading(false);
-                    });
-                });
-                subscription = data.subscription;
-
+                    setLoading(false);
+                }
             } catch (err) {
-                console.error("Supabase client init error:", err);
-                if (mounted) setLoading(false);
+                console.error("Unexpected error in fetchProfile:", err);
+                if (mounted) {
+                    setUser({ ...sessionUser, is_pro: false });
+                    setLoading(false);
+                }
             }
         };
 
-        init();
-
-        // Safety fallback: Force stop loading after 3 seconds
-        const timer = setTimeout(() => {
-            if (mounted && loading) {
-                console.warn("⚠️ Auth timeout - forcing loading false");
-                setLoading(false);
+        // IMMEDIATE: Get current session on mount
+        supabase.auth.getSession().then(({ data: { session } }) => {
+            if (mounted) {
+                fetchProfile(session?.user ?? null);
             }
-        }, 3000);
+        }).catch((error) => {
+            console.error("getSession error:", error);
+            if (mounted) setLoading(false);
+        });
+
+        // ONGOING: Listen for auth changes (login/logout)
+        const { data } = supabase.auth.onAuthStateChange((_event, session) => {
+            fetchProfile(session?.user ?? null);
+        });
+        subscription = data.subscription;
 
         return () => {
             mounted = false;
-            clearTimeout(timer);
             if (subscription) subscription.unsubscribe();
         };
     }, []);
