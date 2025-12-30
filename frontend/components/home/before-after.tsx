@@ -9,13 +9,19 @@ interface BeforeAfterProps {
     originalUrl: string
     processedUrl: string
     onDownload?: () => void
+    downloadUrl?: string
+    buttonText?: string
+    onAction?: () => void
 }
 
-export function BeforeAfter({ originalUrl, processedUrl, onDownload }: BeforeAfterProps) {
+export function BeforeAfter({ originalUrl, processedUrl, onDownload, downloadUrl, buttonText = "Download Image", onAction }: BeforeAfterProps) {
     const [sliderPosition, setSliderPosition] = useState(50)
     const [isDragging, setIsDragging] = useState(false)
     const containerRef = useRef<HTMLDivElement>(null)
     const [downloaded, setDownloaded] = useState(false)
+
+    // Check if this is functioning as a download button
+    const isDownloadButton = !!(onDownload || downloadUrl)
 
     const handleMove = (event: MouseEvent | TouchEvent) => {
         if (!containerRef.current) return
@@ -55,11 +61,26 @@ export function BeforeAfter({ originalUrl, processedUrl, onDownload }: BeforeAft
         }
     }, [isDragging])
 
-    const handleDownloadClick = () => {
-        trackDownload() // Track download
-        if (onDownload) onDownload()
-        setDownloaded(true)
-        setTimeout(() => setDownloaded(false), 2000)
+    const handleButtonClick = () => {
+        if (onAction) {
+            onAction()
+            return
+        }
+
+        if (isDownloadButton) {
+            trackDownload()
+            if (onDownload) onDownload()
+            if (downloadUrl) {
+                const link = document.createElement('a')
+                link.href = downloadUrl
+                link.download = 'processed-image.png'
+                document.body.appendChild(link)
+                link.click()
+                document.body.removeChild(link)
+            }
+            setDownloaded(true)
+            setTimeout(() => setDownloaded(false), 2000)
+        }
     }
 
     return (
@@ -124,11 +145,15 @@ export function BeforeAfter({ originalUrl, processedUrl, onDownload }: BeforeAft
 
                 <div className="flex justify-center">
                     <button
-                        onClick={handleDownloadClick}
+                        onClick={handleButtonClick}
                         className="inline-flex items-center gap-2 px-8 py-4 bg-accent hover:bg-accent-hover text-white rounded-full font-semibold text-lg transition-all shadow-lg hover:shadow-xl hover:scale-105 active:scale-95"
                     >
-                        {downloaded ? <Check className="w-5 h-5" /> : <Download className="w-5 h-5" />}
-                        {downloaded ? "Downloaded!" : "Download Image"}
+                        {isDownloadButton ? (
+                            downloaded ? <Check className="w-5 h-5" /> : <Download className="w-5 h-5" />
+                        ) : (
+                            <span className="text-xl">✨</span>
+                        )}
+                        {isDownloadButton && downloaded ? "Downloaded!" : buttonText}
                     </button>
                 </div>
             </div>

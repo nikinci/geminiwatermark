@@ -1,3 +1,5 @@
+"use client"
+
 import { Hero } from "@/components/home/hero"
 import { BeforeAfter } from "@/components/home/before-after"
 import { HowItWorks } from "@/components/home/how-it-works"
@@ -14,8 +16,12 @@ export default function Home() {
       <Hero />
       <StatsCounter />
       <BeforeAfter
-        originalUrl="https://placehold.co/1920x1080/333/fff?text=Original"
-        processedUrl="https://placehold.co/1920x1080/111/fff?text=Processed"
+        originalUrl="/demo/original.png"
+        processedUrl="/demo/processed.png"
+        buttonText="Try for Free"
+        onAction={() => {
+          window.scrollTo({ top: 0, behavior: 'smooth' })
+        }}
       />
       <HowItWorks />
       <FeaturesGrid />
