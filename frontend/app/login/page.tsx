@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { trackLoginSubmit, trackMagicLinkSent, trackLoginError } from '@/lib/analytics'
+import { isDisposableEmail } from '@/lib/disposable-domains'
 
 export default function LoginPage() {
     const [email, setEmail] = useState('')
@@ -14,6 +15,13 @@ export default function LoginPage() {
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault()
+
+        // Temp mail check
+        if (isDisposableEmail(email)) {
+            toast.error('Temporary email addresses are not allowed. Please use a valid email.')
+            return
+        }
+
         trackLoginSubmit()
         setLoading(true)
 
@@ -25,10 +33,22 @@ export default function LoginPage() {
                 ? window.location.origin
                 : process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
 
+            // Robust cookie reading
+            const getRefCode = () => {
+                const match = document.cookie.match(new RegExp('(^| )referral_code=([^;]+)'));
+                return match ? match[2] : null;
+            }
+            const referralCode = getRefCode()
+
+            console.log('🚀 Sending Magic Link with Referral Code:', referralCode) // Debug Log
+
             const { error } = await supabase.auth.signInWithOtp({
                 email,
                 options: {
                     emailRedirectTo: `${origin}/auth/callback`,
+                    data: {
+                        referral_code: referralCode ?? undefined
+                    }
                 },
             })
 

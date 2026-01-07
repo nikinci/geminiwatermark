@@ -3,7 +3,7 @@
 import { useState } from "react"
 import Link from "next/link"
 import { motion, AnimatePresence } from "framer-motion"
-import { Menu, X, Zap } from "lucide-react"
+import { Menu, X, Zap, Crown } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/contexts/auth-context"
 import { useRouter } from "next/navigation"
@@ -54,7 +54,10 @@ export function Header() {
                         <>
                             {user ? (
                                 <div className="flex items-center gap-4">
-                                    <span className="text-sm text-muted-foreground hidden lg:block">{user.email}</span>
+                                    <Link href="/profile" className="text-sm text-muted-foreground hidden lg:flex items-center gap-2 hover:text-white transition-colors">
+                                        {user.is_pro && <Crown className="w-4 h-4 text-amber-500 fill-amber-500/20" />}
+                                        {user.email}
+                                    </Link>
                                     <Button variant="ghost" size="sm" onClick={handleSignOut}>
                                         Logout
                                     </Button>
@@ -107,7 +110,10 @@ export function Header() {
                                 <>
                                     {user ? (
                                         <>
-                                            <p className="text-sm text-muted-foreground px-2">{user.email}</p>
+                                            <p className="text-sm text-muted-foreground px-2 flex items-center gap-2">
+                                                {user.is_pro && <Crown className="w-4 h-4 text-amber-500 fill-amber-500/20" />}
+                                                {user.email}
+                                            </p>
                                             <Button variant="ghost" size="sm" onClick={() => { handleSignOut(); setIsOpen(false); }} className="justify-start">
                                                 Logout
                                             </Button>

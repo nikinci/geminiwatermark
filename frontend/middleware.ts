@@ -2,7 +2,20 @@ import { type NextRequest } from 'next/server'
 import { updateSession } from '@/lib/supabase/middleware'
 
 export async function middleware(request: NextRequest) {
-    return await updateSession(request)
+    const response = await updateSession(request)
+
+    // Capture referral code from URL
+    const referralCode = request.nextUrl.searchParams.get('ref')
+    if (referralCode) {
+        response.cookies.set('referral_code', referralCode, {
+            path: '/',
+            httpOnly: false, // Allow client-side access
+            maxAge: 60 * 60 * 24 * 30, // 30 days
+            sameSite: 'lax'
+        })
+    }
+
+    return response
 }
 
 export const config = {

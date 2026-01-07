@@ -12,9 +12,10 @@ interface BeforeAfterProps {
     downloadUrl?: string
     buttonText?: string
     onAction?: () => void
+    scrollToTopOnAction?: boolean
 }
 
-export function BeforeAfter({ originalUrl, processedUrl, onDownload, downloadUrl, buttonText = "Download Image", onAction }: BeforeAfterProps) {
+export function BeforeAfter({ originalUrl, processedUrl, onDownload, downloadUrl, buttonText = "Download Image", onAction, ...props }: BeforeAfterProps) {
     const [sliderPosition, setSliderPosition] = useState(50)
     const [isDragging, setIsDragging] = useState(false)
     const containerRef = useRef<HTMLDivElement>(null)
@@ -64,6 +65,12 @@ export function BeforeAfter({ originalUrl, processedUrl, onDownload, downloadUrl
     const handleButtonClick = () => {
         if (onAction) {
             onAction()
+            return
+        }
+
+        // New: Handle Scroll To Top internally for Server Component compatibility
+        if (props.scrollToTopOnAction) {
+            window.scrollTo({ top: 0, behavior: 'smooth' })
             return
         }
 

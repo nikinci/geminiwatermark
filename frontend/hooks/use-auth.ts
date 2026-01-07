@@ -56,7 +56,7 @@ export function useAuth(): UseAuthReturn {
             }
 
             const data = await response.json()
-            const userWithProfile = { ...authUser, is_pro: data.is_pro } as AppUser
+            const userWithProfile = { ...authUser, is_pro: data.is_pro, referral_code: data.referral_code } as AppUser
             lastUserIdRef.current = authUser.id
             isFetchingRef.current = false
             return userWithProfile
