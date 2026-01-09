@@ -11,6 +11,7 @@ import hashlib
 import hmac
 from dotenv import load_dotenv
 from supabase import create_client, Client
+from datetime import datetime, timezone
 
 # Load env vars from .env and .env.local
 load_dotenv() 
@@ -132,14 +133,41 @@ def get_rate_limit_usage(ip):
     return rate_limit_store.get(key, 0)
 
 # Check User Subscription Status
+# Check User Subscription Status
 def is_pro_user(user_id):
     if not supabase or not user_id:
         return False
     try:
-        # Check profiles table
-        response = supabase.table('profiles').select('is_pro').eq('id', user_id).execute()
+        # Check profiles table for is_pro AND pro_expires_at
+        response = supabase.table('profiles').select('is_pro, pro_expires_at').eq('id', user_id).execute()
+        
         if response.data and len(response.data) > 0:
-            return response.data[0]['is_pro']
+            user_data = response.data[0]
+            
+            # 1. Check permanent Pro status
+            if user_data.get('is_pro'):
+                return True
+                
+            # 2. Check temporary/expiring Pro status
+            expires_at_str = user_data.get('pro_expires_at')
+            if expires_at_str:
+                # Handle ISO format from Supabase (may contain Z or offset)
+                try:
+                    # Helper to handle 'Z' if python < 3.11, though fromisoformat usually handles it in newer pythons
+                    # Being safe by replacing Z with +00:00
+                    expires_at = datetime.fromisoformat(expires_at_str.replace('Z', '+00:00'))
+                    
+                    # Ensure timezone awareness for comparison
+                    if expires_at.tzinfo is None:
+                        expires_at = expires_at.replace(tzinfo=timezone.utc)
+                        
+                    now = datetime.now(timezone.utc)
+                    
+                    if expires_at > now:
+                        return True
+                except ValueError:
+                    print(f"⚠️ Date parse error for user {user_id}: {expires_at_str}")
+                    
     except Exception as e:
         print(f"Supabase Check Error: {e}")
     return False
