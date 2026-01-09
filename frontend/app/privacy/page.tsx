@@ -3,7 +3,7 @@ export default function PrivacyPage() {
         <main className="min-h-screen pt-24 pb-12">
             <div className="container mx-auto px-4 max-w-3xl prose prose-invert">
                 <h1>Privacy Policy</h1>
-                <p>Last updated: December 2024</p>
+                <p>Last updated: December 2025</p>
 
                 <h2>1. Image Processing</h2>
                 <p>
@@ -20,6 +20,11 @@ export default function PrivacyPage() {
                 <h2>3. Local Storage</h2>
                 <p>
                     We use local storage on your device to track your daily free usage limit. No personal data is stored in cookies.
+                </p>
+
+                <h2>4. Contact Us</h2>
+                <p>
+                    If you have questions about this policy, please contact us at <a href="mailto:hello@geminiwatermark.ai" className="text-accent hover:underline">hello@geminiwatermark.ai</a>.
                 </p>
             </div>
         </main>

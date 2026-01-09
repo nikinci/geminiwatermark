@@ -40,7 +40,9 @@ export function Footer() {
                 <div className="pt-8 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-muted-foreground">
                     <p>© {new Date().getFullYear()} GeminiWatermark.ai. All rights reserved.</p>
                     <div className="flex gap-4">
-                        {/* Socials placeholder */}
+                        <Link href="mailto:hello@geminiwatermark.ai" className="hover:text-accent transition-colors">hello@geminiwatermark.ai</Link>
+                        <span className="text-white/20">|</span>
+                        <Link href="mailto:support@geminiwatermark.ai" className="hover:text-accent transition-colors">support@geminiwatermark.ai</Link>
                     </div>
                 </div>
             </div>
