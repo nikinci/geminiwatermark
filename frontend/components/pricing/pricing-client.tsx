@@ -10,7 +10,7 @@ import { useEffect } from "react"
 export function PricingClient() {
     const { user, loading } = useAuth();
     // Real Lemon Squeezy Product URL
-    const LEMON_SQUEEZY_URL = "https://cmoontech.lemonsqueezy.com/checkout/buy/49825ef9-979a-4756-a744-b26b8ea1e57f";
+    const LEMON_SQUEEZY_URL = "https://cmoontech.lemonsqueezy.com/checkout/buy/5ab759bb-85de-43fb-b801-8a52dc020296";
 
     useEffect(() => {
         trackPricingView()
