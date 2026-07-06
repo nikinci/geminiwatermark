@@ -1,7 +1,8 @@
 "use client"
 
 import { useRef } from "react"
-import { Upload, FileImage, AlertCircle } from "lucide-react"
+import Link from "next/link"
+import { Upload, FileImage, AlertCircle, Layers } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { useUpload } from "@/hooks/use-upload"
@@ -72,7 +73,7 @@ export function UploadZone({ onFileSelect }: UploadZoneProps) {
                             {user?.is_pro ? (
                                 <>
                                     Drag & drop multiple images or click to select. <br />
-                                    Batch up to 10 images at once. JPG, PNG, WebP up to 25MB
+                                    Processed together in fast batches. JPG, PNG, WebP up to 25MB
                                 </>
                             ) : (
                                 <>
@@ -118,8 +119,8 @@ export function UploadZone({ onFileSelect }: UploadZoneProps) {
                             Unlimited Access
                         </div>
                         <div className="flex items-center gap-2 text-accent font-medium">
-                            <span className="w-1.5 h-1.5 rounded-full bg-accent" />
-                            Pro Member
+                            <Layers className="w-3.5 h-3.5" />
+                            Batch Upload On
                         </div>
                     </>
                 ) : (
@@ -134,12 +135,13 @@ export function UploadZone({ onFileSelect }: UploadZoneProps) {
                                 No Signup
                             </div>
                         )}
-                        {user && (
-                            <div className="flex items-center gap-2">
-                                <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
-                                Basic Plan
-                            </div>
-                        )}
+                        <Link
+                            href="/pricing"
+                            className="flex items-center gap-2 text-accent font-medium hover:underline underline-offset-4"
+                        >
+                            <Layers className="w-3.5 h-3.5" />
+                            Batch upload with Pro →
+                        </Link>
                     </>
                 )}
             </div>

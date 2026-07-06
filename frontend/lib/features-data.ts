@@ -1,4 +1,4 @@
-import { ShieldCheck, Zap, Smartphone, CheckCircle2, Lock, Image as ImageIcon, LucideIcon } from "lucide-react"
+import { ShieldCheck, Zap, Smartphone, CheckCircle2, Lock, Image as ImageIcon, Layers, LucideIcon } from "lucide-react"
 
 export interface Feature {
     slug: string
@@ -12,6 +12,34 @@ export interface Feature {
 }
 
 export const FEATURES: Feature[] = [
+    {
+        slug: "batch-processing",
+        icon: Layers,
+        title: "Batch Processing",
+        description: "Drop multiple images at once and watch them all get cleaned in a single run. Built for Pro users who work in volume.",
+        longDescription: "Stop cleaning images one by one. With Pro batch processing, you can drag and drop a whole set of Gemini images into the upload zone and our engine processes them together in optimized batches of up to 10 per run. Each image gets its own live status card — cleaned images become instantly downloadable, while images without a detectable watermark are clearly flagged. The detection engine loads once per batch instead of once per image, making bulk runs significantly faster than sequential uploads.",
+        benefits: [
+            "Upload up to 10 images per batch run",
+            "Single-pass engine: faster than one-by-one processing",
+            "Per-image status, preview and download",
+            "Combine with unlimited Pro quota for any volume"
+        ],
+        useCases: [
+            "Content creators cleaning a full day's worth of AI generations in one drop.",
+            "E-commerce sellers preparing dozens of product visuals at once.",
+            "Agencies and marketing teams handling client asset libraries in bulk."
+        ],
+        faq: [
+            {
+                question: "How many images can I upload at once?",
+                answer: "Pro users can select or drag any number of images; they are processed in fast batches of up to 10 per run, one batch after another."
+            },
+            {
+                question: "What happens if one image in the batch has no watermark?",
+                answer: "Each image is handled independently. Images without a detectable watermark are flagged individually — the rest of the batch is still processed and downloadable."
+            }
+        ]
+    },
     {
         slug: "lightning-fast-processing",
         icon: Zap,

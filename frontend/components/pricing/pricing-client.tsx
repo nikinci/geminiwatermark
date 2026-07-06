@@ -94,7 +94,7 @@ export function PricingClient() {
                             </li>
                             <li className="flex items-center gap-2 text-sm text-gray-300">
                                 <Check className="w-4 h-4 text-accent" />
-                                Batch uploads
+                                Batch uploads — multiple images in one go
                             </li>
 
                         </ul>

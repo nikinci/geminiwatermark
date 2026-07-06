@@ -16,7 +16,11 @@ const faqs = [
     },
     {
         question: "Is it really free?",
-        answer: "Yes! You can process up to 3 images per day completely free. We also plan to offer premium plans for unlimited bulk processing in the future."
+        answer: "Yes! You can process up to 3 images per day completely free. For unlimited images and batch processing, upgrade to Pro for $4.99/month."
+    },
+    {
+        question: "Can I process multiple images at once?",
+        answer: "Yes! Pro users can drag and drop multiple images in one go — they are processed together in fast batches, and every image gets its own status and download link. Free users process one image at a time."
     },
     {
         question: "Is my image stored?",

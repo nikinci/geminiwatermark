@@ -5,8 +5,8 @@ import { Upload, Zap, Download } from "lucide-react"
 const steps = [
     {
         icon: Upload,
-        title: "1. Upload Image",
-        description: "Drag and drop your watermarked Gemini image into the upload box. We support JPG, PNG, and WebP."
+        title: "1. Upload Images",
+        description: "Drag and drop your watermarked Gemini image — or a whole batch at once with Pro. We support JPG, PNG, and WebP."
     },
     {
         icon: Zap,

@@ -1,6 +1,12 @@
-import { ShieldCheck, Zap, Smartphone, CheckCircle2, Lock, Image as ImageIcon } from "lucide-react"
+import { ShieldCheck, Zap, CheckCircle2, Lock, Image as ImageIcon, Layers } from "lucide-react"
 
 const features = [
+    {
+        icon: Layers,
+        title: "Batch Processing",
+        badge: "Pro",
+        description: "Drop multiple images at once — all cleaned together in a single fast run, each with its own download."
+    },
     {
         icon: Zap,
         title: "Lightning Fast",
@@ -25,11 +31,6 @@ const features = [
         icon: CheckCircle2,
         title: "No Signup Required",
         description: "Start removing watermarks instantly. No email, no account, no friction."
-    },
-    {
-        icon: Smartphone,
-        title: "Works on Mobile",
-        description: "Fully responsive design allowing you to clean images directly from your phone."
     }
 ]
 
@@ -54,7 +55,14 @@ export function FeaturesGrid() {
                                     <feature.icon className="w-6 h-6 text-accent" />
                                 </div>
                                 <div className="space-y-2">
-                                    <h3 className="text-xl font-semibold text-white">{feature.title}</h3>
+                                    <h3 className="text-xl font-semibold text-white flex items-center gap-2">
+                                        {feature.title}
+                                        {"badge" in feature && feature.badge && (
+                                            <span className="text-[10px] font-bold uppercase tracking-wider bg-accent/15 text-accent border border-accent/30 rounded-full px-2 py-0.5">
+                                                {feature.badge}
+                                            </span>
+                                        )}
+                                    </h3>
                                     <p className="text-muted-foreground leading-relaxed">
                                         {feature.description}
                                     </p>
