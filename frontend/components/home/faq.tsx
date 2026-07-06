@@ -19,6 +19,10 @@ const faqs = [
         answer: "Yes! You can process up to 3 images per day completely free. For unlimited images and batch processing, upgrade to Pro for $4.99/month."
     },
     {
+        question: "Can it remove watermarks from Veo videos?",
+        answer: "Yes! Pro members can remove Google Veo and Gemini video watermarks (both the diamond and the 'Veo' text) at our Video Remover page — audio preserved, no quality loss, up to 10 videos per day."
+    },
+    {
         question: "Can I process multiple images at once?",
         answer: "Yes! Pro users can drag and drop multiple images in one go — they are processed together in fast batches, and every image gets its own status and download link. Free users process one image at a time."
     },

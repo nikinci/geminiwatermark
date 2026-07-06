@@ -96,6 +96,10 @@ export function PricingClient() {
                                 <Check className="w-4 h-4 text-accent" />
                                 Batch uploads — multiple images in one go
                             </li>
+                            <li className="flex items-center gap-2 text-sm text-gray-300">
+                                <Check className="w-4 h-4 text-accent" />
+                                Veo video watermark removal (10/day)
+                            </li>
 
                         </ul>
 

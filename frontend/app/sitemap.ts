@@ -20,6 +20,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
         },
         ...featureUrls,
         {
+            url: `${baseUrl}/video`,
+            lastModified: new Date(),
+            changeFrequency: 'weekly',
+            priority: 0.9,
+        },
+        {
             url: `${baseUrl}/features`,
             lastModified: new Date(),
             changeFrequency: 'weekly',

@@ -17,6 +17,12 @@ RUN wget -q https://github.com/allenk/GeminiWatermarkTool/releases/download/v0.3
     && chmod +x GeminiWatermarkTool \
     && rm gwt-mini-linux-x64.zip
 
+# Veo video watermark tool (demo build, pinned version)
+RUN wget -q https://github.com/allenk/VeoWatermarkRemover/releases/download/v0.6.4-demo/GeminiWatermarkTool-Linux-x64-Video.zip \
+    && unzip GeminiWatermarkTool-Linux-x64-Video.zip \
+    && chmod +x GeminiWatermarkTool-Video \
+    && rm GeminiWatermarkTool-Linux-x64-Video.zip
+
 # Setup Python app
 WORKDIR /app
 COPY requirements.txt .

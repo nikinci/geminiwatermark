@@ -9,6 +9,7 @@ import { useAuth } from "@/contexts/auth-context"
 import { useRouter } from "next/navigation"
 
 const navLinks = [
+    { href: "/video", label: "Video Remover" },
     { href: "/features", label: "Features" },
     { href: "/pricing", label: "Pricing" },
     { href: "/contact", label: "Contact" },

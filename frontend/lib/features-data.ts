@@ -1,4 +1,4 @@
-import { ShieldCheck, Zap, Smartphone, CheckCircle2, Lock, Image as ImageIcon, Layers, LucideIcon } from "lucide-react"
+import { ShieldCheck, Zap, Smartphone, CheckCircle2, Lock, Image as ImageIcon, Layers, Film, LucideIcon } from "lucide-react"
 
 export interface Feature {
     slug: string
@@ -12,6 +12,34 @@ export interface Feature {
 }
 
 export const FEATURES: Feature[] = [
+    {
+        slug: "veo-video-removal",
+        icon: Film,
+        title: "Veo Video Removal",
+        description: "Remove Google Veo and Gemini video watermarks — the diamond and the 'Veo' text — with zero quality loss and audio preserved.",
+        longDescription: "Google Veo and Gemini 3.5 stamp a visible watermark on every generated video — a diamond logo or a small 'Veo' wordmark in the corner. Our video pipeline removes it frame by frame using the same mathematically precise reverse alpha blending as our image tool: no generative fill, no hallucinated pixels, no re-imagined content. The engine auto-detects which watermark your clip carries and where it sits (720p and 1080p, landscape or portrait), adapts the removal intensity per frame, keeps your audio track untouched, and outputs a video whose frame count, duration, and FPS match the original exactly.",
+        benefits: [
+            "Gemini diamond and 'Veo' text watermarks auto-detected",
+            "720p & 1080p, landscape and portrait",
+            "Audio preserved, tick-exact frame timing",
+            "Deterministic math — no AI hallucination, no quality loss"
+        ],
+        useCases: [
+            "Creators publishing Veo/Flow-generated clips on social media.",
+            "Marketing teams producing AI video ads without visible branding.",
+            "Filmmakers using Veo for pre-visualization and storyboards."
+        ],
+        faq: [
+            {
+                question: "How long does a video take to process?",
+                answer: "Typically 1-3 minutes for a standard 8-second Veo clip. Jobs run in a queue with live progress, and your result stays downloadable for an hour."
+            },
+            {
+                question: "Does it work on every Veo video?",
+                answer: "It handles standard Veo/Gemini 720p and 1080p outputs automatically. Clips with heavy motion directly under the watermark can occasionally leave a faint residue on a few frames."
+            }
+        ]
+    },
     {
         slug: "batch-processing",
         icon: Layers,

@@ -58,3 +58,44 @@ export async function removeWatermarkBatch(files: File[], userId: string): Promi
 export function getDownloadUrl(downloadId: string): string {
     return `${API_URL}/api/download/${downloadId}`;
 }
+
+// --- Video (Veo) watermark removal: async job API ---
+
+export interface VideoJobResponse {
+    success?: boolean;
+    job_id?: string;
+    queue_position?: number;
+    remaining_today?: number;
+    error?: string;
+    code?: string;
+}
+
+export interface VideoStatusResponse {
+    job_id?: string;
+    status: 'queued' | 'processing' | 'done' | 'no_watermark' | 'error';
+    progress: number;
+    queue_position?: number;
+    error?: string;
+}
+
+export async function removeVideoWatermark(file: File, userId: string): Promise<VideoJobResponse> {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('user_id', userId);
+
+    const res = await fetch(`${API_URL}/api/video/remove`, {
+        method: 'POST',
+        body: formData,
+    });
+
+    return res.json();
+}
+
+export async function getVideoStatus(jobId: string): Promise<VideoStatusResponse> {
+    const res = await fetch(`${API_URL}/api/video/status/${jobId}`);
+    return res.json();
+}
+
+export function getVideoDownloadUrl(jobId: string): string {
+    return `${API_URL}/api/video/download/${jobId}`;
+}

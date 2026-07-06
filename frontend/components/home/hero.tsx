@@ -34,13 +34,13 @@ export function Hero() {
                     transition={{ duration: 0.5 }}
                     className="max-w-4xl mx-auto space-y-6 mb-12"
                 >
-                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent/10 border border-accent/20 text-accent text-sm font-medium mb-4">
+                    <a href="/video" className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent/10 border border-accent/20 text-accent text-sm font-medium mb-4 hover:bg-accent/20 transition-colors">
                         <span className="relative flex h-2 w-2">
                             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-75"></span>
                             <span className="relative inline-flex rounded-full h-2 w-2 bg-accent"></span>
                         </span>
-                        New: Batch Processing — clean multiple images at once
-                    </div>
+                        New: Veo Video Watermark Remover →
+                    </a>
 
                     <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-white bg-clip-text text-transparent bg-gradient-to-b from-white to-white/60">
                         Remove Gemini Watermarks
