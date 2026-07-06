@@ -12,10 +12,10 @@ echo "📥 Step 1: Download GeminiWatermarkTool"
 echo "----------------------------------------"
 
 if [[ "$OSTYPE" == "darwin"* ]]; then
-    TOOL_URL="https://github.com/allenk/GeminiWatermarkTool/releases/download/v1.1.0/GeminiWatermarkTool-macOS-Universal.zip"
+    TOOL_URL="https://github.com/allenk/GeminiWatermarkTool/releases/download/v0.3.1/GeminiWatermarkTool-macOS-Universal.zip"
     TOOL_NAME="GeminiWatermarkTool-macOS-Universal"
 elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
-    TOOL_URL="https://github.com/allenk/GeminiWatermarkTool/releases/download/v1.1.0/GeminiWatermarkTool-Linux-x64.zip"
+    TOOL_URL="https://github.com/allenk/GeminiWatermarkTool/releases/download/v0.3.1/GeminiWatermarkTool-Linux-x64.zip"
     TOOL_NAME="GeminiWatermarkTool-Linux-x64"
 else
     echo "❌ Windows detected. Run this in WSL or use the Windows version manually."

@@ -391,6 +391,14 @@ def remove_watermark():
             timeout=60
         )
         
+        # v0.3.1 exit codes: 0 = processed, 1 = skipped (no watermark on V2 or legacy V1 profile), 2 = real failure
+        if result.returncode == 1:
+            return jsonify({
+                'error': 'No watermark detected in this image.',
+                'code': 'NO_WATERMARK',
+                'message': 'The tool could not find a Gemini watermark in this image (both current and legacy profiles were tried). If the image was cropped or resized, please upload the original.'
+            }), 422
+
         if result.returncode != 0:
             print(f"TOOL FAILED: {result.stderr}")
             return jsonify({'error': f'Tool execution failed: {result.stderr}'}), 500
