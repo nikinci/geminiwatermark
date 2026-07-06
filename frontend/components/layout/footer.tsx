@@ -5,7 +5,7 @@ export function Footer() {
     return (
         <footer className="border-t border-white/5 bg-black/20">
             <div className="container mx-auto px-4 py-12">
-                <div className="grid md:grid-cols-4 gap-8 mb-8">
+                <div className="grid md:grid-cols-5 gap-8 mb-8">
                     <div className="md:col-span-2 space-y-4">
                         <Link href="/" className="flex items-center gap-2 font-bold text-xl tracking-tight">
                             <div className="w-6 h-6 rounded-md bg-accent/20 flex items-center justify-center border border-accent/20">
@@ -14,8 +14,17 @@ export function Footer() {
                             <span className="text-lg">GeminiWatermark<span className="text-accent">.ai</span></span>
                         </Link>
                         <p className="text-muted-foreground text-sm max-w-sm">
-                            The first AI-powered tool dedicated to removing visible watermarks from Google Gemini generated images.
+                            Remove visible watermarks from Google Gemini images and Veo videos — deterministic reverse alpha blending, no quality loss.
                         </p>
+                    </div>
+
+                    <div>
+                        <h4 className="font-semibold text-white mb-4">Tools</h4>
+                        <ul className="space-y-2 text-sm text-muted-foreground">
+                            <li><Link href="/" className="hover:text-accent transition-colors">Image Watermark Remover</Link></li>
+                            <li><Link href="/video" className="hover:text-accent transition-colors">Veo Video Remover</Link></li>
+                            <li><Link href="/features/batch-processing" className="hover:text-accent transition-colors">Batch Processing</Link></li>
+                        </ul>
                     </div>
 
                     <div>

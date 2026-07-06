@@ -13,6 +13,9 @@ export const metadata: Metadata = {
         "veo 3 watermark remover",
         "flow video watermark",
     ],
+    alternates: {
+        canonical: "/video",
+    },
     openGraph: {
         title: "Remove Veo Video Watermarks - GeminiWatermark.ai",
         description:

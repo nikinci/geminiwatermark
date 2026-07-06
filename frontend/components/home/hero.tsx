@@ -48,7 +48,7 @@ export function Hero() {
                     </h1>
 
                     <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-                        The free AI-powered tool designed to remove Google Gemini's visible logo watermarks.
+                        GeminiWatermark.ai removes the visible watermark from Google Gemini images and Veo videos — free, in seconds, with no quality loss.
                         <span className="block mt-2 text-sm text-yellow-500/80 font-medium">
                             Note: This tool removes the visible watermark only. It does NOT remove invisible SynthID watermarks.
                         </span>

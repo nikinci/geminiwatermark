@@ -21,8 +21,26 @@ const steps = [
 ]
 
 export function HowItWorks() {
+    const howToJsonLd = {
+        "@context": "https://schema.org",
+        "@type": "HowTo",
+        "name": "How to remove a Gemini watermark from an image",
+        "description": "Remove the visible Google Gemini watermark from an AI-generated image in seconds, for free, with no quality loss.",
+        "totalTime": "PT10S",
+        "step": steps.map((step, i) => ({
+            "@type": "HowToStep",
+            "position": i + 1,
+            "name": step.title.replace(/^\d+\.\s*/, ""),
+            "text": step.description
+        }))
+    }
+
     return (
         <section className="py-24 border-y border-border/50">
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{ __html: JSON.stringify(howToJsonLd) }}
+            />
             <div className="container mx-auto px-4">
                 <div className="text-center mb-16 space-y-4">
                     <h2 className="text-3xl md:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-b from-white to-white/60">

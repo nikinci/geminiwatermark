@@ -32,7 +32,7 @@ const faqs = [
     },
     {
         question: "How does it work technically?",
-        answer: "We use advanced computer vision and specialized AI models trained to detect and inpaint the specific visible branding artifacts used by Gemini."
+        answer: "Reverse alpha blending is a deterministic method that mathematically inverts the watermark compositing equation (watermarked = original × (1−alpha) + logo × alpha) to restore the original pixels exactly. Unlike generative AI inpainting, it never invents content — identical input always produces identical output, and the rest of the image stays bit-for-bit untouched."
     },
     {
         question: "Does it work on mobile?",
