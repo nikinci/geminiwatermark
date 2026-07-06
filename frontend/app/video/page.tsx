@@ -2,9 +2,9 @@ import { Metadata } from "next"
 import { VideoClient } from "@/components/video/video-client"
 
 export const metadata: Metadata = {
-    title: "Remove Veo Video Watermark - AI Video Watermark Remover | GeminiWatermark.ai",
+    title: "Remove Veo Video Watermark | GeminiWatermark.ai",
     description:
-        "Remove Google Veo and Gemini video watermarks from your AI-generated videos. Mathematically precise reverse alpha blending — no quality loss, audio preserved. Supports 720p & 1080p, diamond and Veo text watermarks.",
+        "Remove Google Veo and Gemini video watermarks with pixel-precise reverse alpha blending. No quality loss, audio preserved. 720p and 1080p supported.",
     keywords: [
         "remove veo watermark",
         "veo video watermark remover",
