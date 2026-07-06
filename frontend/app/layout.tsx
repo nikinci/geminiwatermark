@@ -14,7 +14,7 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "./",
   },
-  title: "Remove Gemini Watermark Free - #1 AI Watermark Remover | GeminiWatermark.ai",
+  title: "Remove Gemini Watermark Free - AI Remover | GeminiWatermark.ai",
   description: "Instantly remove Google Gemini & Imagen 3 watermarks for free. The best online AI watermark remover tool. No signup required. Clean, fast, and 100% private.",
   keywords: ["remove gemini watermark", "gemini watermark remover", "google gemini watermark", "ai watermark remover", "imagen 3 watermark", "google photos watermark", "clean watermark", "synthid remover"],
   openGraph: {
