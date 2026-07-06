@@ -1,5 +1,5 @@
 import { useState, useCallback, ChangeEvent, DragEvent, useEffect } from 'react';
-import { removeWatermark, getDownloadUrl, checkRemaining } from '@/lib/api';
+import { removeWatermark, removeWatermarkBatch, getDownloadUrl, checkRemaining } from '@/lib/api';
 import { useAuth } from '@/contexts/auth-context';
 import { trackUpload, trackUploadSuccess, trackUploadError } from '@/lib/analytics';
 
@@ -89,15 +89,93 @@ export function useUpload({ onFilesAccepted }: UseUploadProps = {}) {
         }
     };
 
+    // Backend accepts max 10 files per batch request; also keep each request
+    // body well under Cloudflare's 100MB limit.
+    const BATCH_CHUNK_FILES = 10;
+    const BATCH_CHUNK_BYTES = 80 * 1024 * 1024;
+
+    const chunkForBatch = (batchItems: UploadItem[]): UploadItem[][] => {
+        const chunks: UploadItem[][] = [];
+        let current: UploadItem[] = [];
+        let currentBytes = 0;
+        for (const item of batchItems) {
+            if (current.length > 0 &&
+                (current.length >= BATCH_CHUNK_FILES || currentBytes + item.file.size > BATCH_CHUNK_BYTES)) {
+                chunks.push(current);
+                current = [];
+                currentBytes = 0;
+            }
+            current.push(item);
+            currentBytes += item.file.size;
+        }
+        if (current.length > 0) chunks.push(current);
+        return chunks;
+    };
+
+    // Pro: send a whole chunk in ONE request; the backend runs a single
+    // tool invocation over all of them and returns per-file results.
+    const processBatchChunk = async (chunkItems: UploadItem[], userId: string) => {
+        const ids = new Set(chunkItems.map(i => i.id));
+        setItems(prev => prev.map(i => ids.has(i.id) ? { ...i, status: 'uploading', progress: 0 } : i));
+
+        const progressInterval = setInterval(() => {
+            setItems(prev => prev.map(i => {
+                if (ids.has(i.id) && i.status === 'uploading') {
+                    return { ...i, progress: Math.min(i.progress + Math.random() * 15, 90) };
+                }
+                return i;
+            }));
+        }, 300);
+
+        try {
+            const res = await removeWatermarkBatch(chunkItems.map(i => i.file), userId);
+            clearInterval(progressInterval);
+
+            if (!res.success || !res.results) {
+                throw new Error(res.message || res.error || 'Batch processing failed');
+            }
+
+            const results = res.results;
+            setItems(prev => prev.map(i => {
+                const idx = chunkItems.findIndex(c => c.id === i.id);
+                if (idx === -1) return i;
+                const r = results[idx];
+                if (r?.success && r.download_id) {
+                    const downloadUrl = getDownloadUrl(r.download_id);
+                    return { ...i, status: 'success', progress: 100, downloadUrl, processedPreview: downloadUrl };
+                }
+                return {
+                    ...i,
+                    status: 'error',
+                    progress: 0,
+                    error: r?.message || r?.error || 'Processing failed',
+                    errorCode: r?.code || null
+                };
+            }));
+
+            results.forEach(r => {
+                if (r.success) trackUploadSuccess();
+                else trackUploadError(r.code || r.error || 'Unknown Error');
+            });
+        } catch (e: any) {
+            clearInterval(progressInterval);
+            trackUploadError(e.message || 'Unknown Error');
+            setItems(prev => prev.map(i => ids.has(i.id) ? {
+                ...i,
+                status: 'error',
+                progress: 0,
+                error: e.message || 'Error',
+                errorCode: null
+            } : i));
+        }
+    };
+
     const upload = async (files: File[]) => {
         trackUpload();
         setIsUploading(true);
         setDndError(null);
 
         // Limit check: If NOT pro, take only first file.
-        // Actually, we should probably throw an error or warn if >1 but not pro.
-        // For better UX: If not pro and multiple files, just slice(0, 1) and warn?
-        // Or reject. Let's just user logic:
         let filesToProcess = files;
         if (user && !user.is_pro && files.length > 1) {
             // If not pro, limit to 1
@@ -123,16 +201,17 @@ export function useUpload({ onFilesAccepted }: UseUploadProps = {}) {
 
         setItems(newItems);
 
-        // Process all (Concurrency: currently all at once. For 50+ images we might want a queue, but for <10 it's fine)
-        // If we want sequential:
-        /*
-        for (const item of newItems) {
-            await processItem(item, user?.id);
+        if (user?.is_pro && user.id && newItems.length > 1) {
+            // Pro batch: chunked single-request processing.
+            // Chunks run sequentially so a huge drop doesn't flood the server.
+            for (const chunk of chunkForBatch(newItems)) {
+                await processBatchChunk(chunk, user.id);
+            }
+        } else {
+            await Promise.all(newItems.map(item => processItem(item, user?.id)));
         }
-        */
-        // Parallel:
-        await Promise.all(newItems.map(item => processItem(item, user?.id)));
 
+        fetchRemaining();
         setIsUploading(false);
     };
 

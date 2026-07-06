@@ -3,6 +3,7 @@ from flask_cors import CORS
 from werkzeug.utils import secure_filename
 import subprocess
 import os
+import shutil
 import uuid
 import time
 import threading
@@ -199,6 +200,65 @@ def increment_rate_limit(ip):
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+def validate_upload(file):
+    """Validate an uploaded FileStorage. Returns an error dict or None."""
+    if not file or file.filename == '':
+        return {'error': 'No file selected'}
+    if not allowed_file(file.filename):
+        return {'error': 'Invalid file type. Use PNG, JPG, or WebP.'}
+    file.seek(0, 2)
+    size = file.tell()
+    file.seek(0)
+    if size > MAX_FILE_SIZE:
+        return {'error': 'File too large. Max 25MB.'}
+    return None
+
+def preprocess_image(input_path, ext):
+    """Fix EXIF orientation, enforce RGB and check resolution in-place.
+    Returns an error dict (LOW_RESOLUTION) or None."""
+    try:
+        from PIL import Image, ImageOps
+
+        with Image.open(input_path) as img:
+            fixed_img = ImageOps.exif_transpose(img)
+
+            # Force convert to RGB (drops Alpha channel, standardizes format)
+            # This fixes the "black watermark" issue if input was RGBA
+            if fixed_img.mode != 'RGB':
+                fixed_img = fixed_img.convert('RGB')
+
+            # VALIDATION: Check for low resolution (thumbnail/preview images)
+            # The tool requires sufficient resolution to detect the watermark pattern accurately.
+            MIN_DIMENSION = 800
+            if fixed_img.width < MIN_DIMENSION and fixed_img.height < MIN_DIMENSION:
+                return {
+                    'error': 'Image resolution too low for accurate removal.',
+                    'code': 'LOW_RESOLUTION',
+                    'message': 'Uploaded image is a low-quality preview (likely from Gemini App). Please upload the original high-res image.'
+                }
+
+            # OPTIMIZATION: Use Max Quality settings to prevent generation loss
+            save_kwargs = {}
+            is_jpeg = img.format == 'JPEG' or ext in ['jpg', 'jpeg']
+            is_webp = img.format == 'WEBP' or ext == 'webp'
+
+            if is_jpeg:
+                save_kwargs = {'quality': 100, 'subsampling': 0}
+            elif is_webp:
+                save_kwargs = {'quality': 100, 'lossless': True}
+
+            fixed_img.save(input_path, **save_kwargs)
+    except Exception as e:
+        print(f"Image pre-processing failed: {e}")
+        # Fallback to raw file if Pillow fails
+    return None
+
+NO_WATERMARK_RESPONSE = {
+    'error': 'No watermark detected in this image.',
+    'code': 'NO_WATERMARK',
+    'message': 'The tool could not find a Gemini watermark in this image (both current and legacy profiles were tried). If the image was cropped or resized, please upload the original.'
+}
+
 def cleanup_old_files():
     """Remove files older than 1 hour"""
     while True:
@@ -207,8 +267,15 @@ def cleanup_old_files():
         for folder in [UPLOAD_FOLDER, OUTPUT_FOLDER]:
             for f in os.listdir(folder):
                 path = os.path.join(folder, f)
-                if os.path.isfile(path) and now - os.path.getmtime(path) > 3600:
-                    os.remove(path)
+                try:
+                    if now - os.path.getmtime(path) > 3600:
+                        if os.path.isfile(path):
+                            os.remove(path)
+                        elif os.path.isdir(path):
+                            # Leftover batch dirs from crashed requests
+                            shutil.rmtree(path, ignore_errors=True)
+                except OSError:
+                    pass
 
 # Start cleanup thread
 threading.Thread(target=cleanup_old_files, daemon=True).start()
@@ -303,76 +370,28 @@ def remove_watermark():
     # Check file
     if 'file' not in request.files:
         return jsonify({'error': 'No file provided'}), 400
-    
+
     file = request.files['file']
-    if file.filename == '':
-        return jsonify({'error': 'No file selected'}), 400
-    
-    if not allowed_file(file.filename):
-        return jsonify({'error': 'Invalid file type. Use PNG, JPG, or WebP.'}), 400
-    
-    # Check file size
-    file.seek(0, 2)
-    size = file.tell()
-    file.seek(0)
-    if size > MAX_FILE_SIZE:
-        return jsonify({'error': 'File too large. Max 25MB.'}), 400
-    
+    validation_error = validate_upload(file)
+    if validation_error:
+        return jsonify(validation_error), 400
+
     try:
         # Save uploaded file
         file_id = str(uuid.uuid4())
         ext = file.filename.rsplit('.', 1)[1].lower()
-        
+
         input_filename = f"{file_id}.{ext}"
         input_path = os.path.join(UPLOAD_FOLDER, input_filename)
-        
+
         # Save raw upload (SINGLE TIME)
         file.save(input_path)
 
         # Pre-process: Fix orientation AND enforce RGB (removes Alpha/RGBA issues)
-        try:
-            from PIL import Image, ImageOps
-            
-            # Open and fix orientation
-            with Image.open(input_path) as img:
-                fixed_img = ImageOps.exif_transpose(img)
-                
-                # Force convert to RGB (drops Alpha channel, standardizes format)
-                # This fixes the "black watermark" issue if input was RGBA
-                if fixed_img.mode != 'RGB':
-                    fixed_img = fixed_img.convert('RGB')
-                
-                # Always save back to ensure standardized format (Pillow default JPEG/PNG)
-                # We reuse the input_path. If it was PNG, we might want to ensure it has .png extension,
-                # but the tool handles extensions based on file content usually, or we trust flask extension.
-                
-                # VALIDATION: Check for low resolution (thumbnail/preview images)
-                # The tool requires sufficient resolution to detect the watermark pattern accurately.
-                MIN_DIMENSION = 800
-                if fixed_img.width < MIN_DIMENSION and fixed_img.height < MIN_DIMENSION:
-                     return jsonify({
-                        'error': 'Image resolution too low for accurate removal.',
-                        'code': 'LOW_RESOLUTION',
-                        'message': 'Uploaded image is a low-quality preview (likely from Gemini App). Please upload the original high-res image.'
-                     }), 400
+        preprocess_error = preprocess_image(input_path, ext)
+        if preprocess_error:
+            return jsonify(preprocess_error), 400
 
-                # OPTIMIZATION: Use Max Quality settings to prevent generation loss
-                save_kwargs = {}
-                # Check format or extension
-                is_jpeg = img.format == 'JPEG' or ext in ['jpg', 'jpeg']
-                is_webp = img.format == 'WEBP' or ext == 'webp'
-                
-                if is_jpeg:
-                    save_kwargs = {'quality': 100, 'subsampling': 0}
-                elif is_webp:
-                    save_kwargs = {'quality': 100, 'lossless': True}
-                
-                fixed_img.save(input_path, **save_kwargs)
-                
-        except Exception as e:
-            print(f"Image pre-processing failed: {e}")
-            # Fallback to raw file if Pillow fails
-        
         # Output path
         output_filename = f"{file_id}_clean.{ext}"
         output_path = os.path.join(OUTPUT_FOLDER, output_filename)
@@ -393,11 +412,7 @@ def remove_watermark():
         
         # v0.3.1 exit codes: 0 = processed, 1 = skipped (no watermark on V2 or legacy V1 profile), 2 = real failure
         if result.returncode == 1:
-            return jsonify({
-                'error': 'No watermark detected in this image.',
-                'code': 'NO_WATERMARK',
-                'message': 'The tool could not find a Gemini watermark in this image (both current and legacy profiles were tried). If the image was cropped or resized, please upload the original.'
-            }), 422
+            return jsonify(NO_WATERMARK_RESPONSE), 422
 
         if result.returncode != 0:
             print(f"TOOL FAILED: {result.stderr}")
@@ -425,6 +440,118 @@ def remove_watermark():
         # Cleanup input file
         if os.path.exists(input_path):
             os.remove(input_path)
+
+MAX_BATCH_FILES = 10
+
+@app.route('/api/remove-batch', methods=['POST'])
+def remove_watermark_batch():
+    """Pro-only: process multiple images with a single tool invocation (batch directory mode).
+
+    The tool loads its detection engine once and runs the same V2 -> legacy V1
+    fallback pipeline per file. Skipped files (no watermark) produce no output
+    file, which is how per-file NO_WATERMARK status is derived (batch mode
+    always exits 0 on mixed processed/skipped, 2 only on real failure).
+    """
+    ip = get_client_ip()
+    user_id = request.form.get('user_id')
+
+    # Batch is a Pro feature - verify server-side, never trust the client
+    if not (user_id and is_pro_user(user_id)):
+        return jsonify({
+            'error': 'Batch processing requires a Pro subscription.',
+            'code': 'PRO_REQUIRED'
+        }), 403
+
+    files = request.files.getlist('files')
+    if not files:
+        return jsonify({'error': 'No files provided'}), 400
+    if len(files) > MAX_BATCH_FILES:
+        return jsonify({
+            'error': f'Too many files. Max {MAX_BATCH_FILES} per batch request.',
+            'code': 'BATCH_TOO_LARGE'
+        }), 400
+
+    if not os.path.exists(TOOL_PATH):
+        print(f"CRITICAL: Tool not found at {TOOL_PATH}")
+        return jsonify({'error': f'Server Config Error: Tool not found at {TOOL_PATH}'}), 500
+
+    batch_id = uuid.uuid4().hex
+    batch_in = os.path.join(UPLOAD_FOLDER, f'batch_{batch_id}')
+    batch_out = os.path.join(OUTPUT_FOLDER, f'batch_{batch_id}')
+    os.makedirs(batch_in, exist_ok=True)
+    os.makedirs(batch_out, exist_ok=True)
+
+    # One result entry per uploaded file, same order as the request
+    results = []
+    pending = []  # (result_entry, file_id, ext) for files that passed validation
+
+    try:
+        for file in files:
+            entry = {'name': file.filename, 'success': False}
+            results.append(entry)
+
+            validation_error = validate_upload(file)
+            if validation_error:
+                entry.update(validation_error)
+                continue
+
+            file_id = str(uuid.uuid4())
+            ext = file.filename.rsplit('.', 1)[1].lower()
+            input_path = os.path.join(batch_in, f'{file_id}.{ext}')
+            file.save(input_path)
+
+            preprocess_error = preprocess_image(input_path, ext)
+            if preprocess_error:
+                entry.update(preprocess_error)
+                os.remove(input_path)
+                continue
+
+            pending.append((entry, file_id, ext))
+
+        if pending:
+            # ~1-2s per image; keep under gunicorn's worker timeout
+            timeout = min(150, 30 + 12 * len(pending))
+            result = subprocess.run(
+                [TOOL_PATH, '-i', batch_in, '-o', batch_out],
+                capture_output=True,
+                text=True,
+                timeout=timeout
+            )
+            tool_failed = result.returncode not in (0, 1)
+            if tool_failed:
+                print(f"BATCH TOOL FAILED (exit {result.returncode}): {result.stderr}")
+
+            for entry, file_id, ext in pending:
+                out_path = os.path.join(batch_out, f'{file_id}.{ext}')
+                if os.path.exists(out_path):
+                    output_filename = f'{file_id}_clean.{ext}'
+                    os.replace(out_path, os.path.join(OUTPUT_FOLDER, output_filename))
+                    entry.update({
+                        'success': True,
+                        'download_id': file_id,
+                        'filename': output_filename
+                    })
+                elif tool_failed:
+                    entry.update({'error': 'Processing failed.', 'code': 'TOOL_ERROR'})
+                else:
+                    entry.update(NO_WATERMARK_RESPONSE)
+
+        processed = sum(1 for r in results if r.get('success'))
+        return jsonify({
+            'success': True,
+            'processed': processed,
+            'total': len(results),
+            'results': results
+        })
+
+    except subprocess.TimeoutExpired:
+        return jsonify({'error': 'Batch processing timeout. Try fewer or smaller images.'}), 500
+    except Exception as e:
+        print(f"CRITICAL BATCH ERROR: {e}")
+        return jsonify({'error': f'Server error: {str(e)}'}), 500
+    finally:
+        shutil.rmtree(batch_in, ignore_errors=True)
+        shutil.rmtree(batch_out, ignore_errors=True)
 
 @app.route('/api/download/<file_id>', methods=['GET'])
 def download(file_id):
