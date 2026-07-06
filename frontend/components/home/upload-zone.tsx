@@ -64,16 +64,27 @@ export function UploadZone({ onFileSelect }: UploadZoneProps) {
 
                     <div className="space-y-2">
                         <h3 className="text-xl font-semibold tracking-tight">
-                            {isDragging ? "Drop image here" : "Upload an image"}
+                            {isDragging
+                                ? (user?.is_pro ? "Drop images here" : "Drop image here")
+                                : (user?.is_pro ? "Upload images" : "Upload an image")}
                         </h3>
                         <p className="text-sm text-muted-foreground max-w-[280px]">
-                            Drag & drop or click to upload. <br />
-                            Support for JPG, PNG, WebP up to 25MB
+                            {user?.is_pro ? (
+                                <>
+                                    Drag & drop multiple images or click to select. <br />
+                                    Batch up to 10 images at once. JPG, PNG, WebP up to 25MB
+                                </>
+                            ) : (
+                                <>
+                                    Drag & drop or click to upload. <br />
+                                    Support for JPG, PNG, WebP up to 25MB
+                                </>
+                            )}
                         </p>
                     </div>
 
                     <Button variant={isDragging ? "accent" : "secondary"} className="mt-2">
-                        Select File
+                        {user?.is_pro ? "Select Files" : "Select File"}
                     </Button>
                 </div>
 
