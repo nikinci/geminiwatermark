@@ -6,6 +6,7 @@ RUN apt-get update && apt-get install -y \
     python3-venv \
     wget \
     unzip \
+    libdbus-1-3 \
     && rm -rf /var/lib/apt/lists/*
 
 # Download and setup the watermark tool
