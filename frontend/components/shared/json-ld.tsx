@@ -42,7 +42,7 @@ export function JsonLd() {
                         "name": "Free",
                         "price": "0",
                         "priceCurrency": "USD",
-                        "description": "3 images per day, no signup required"
+                        "description": "5 images per day, no signup required"
                     },
                     {
                         "@type": "Offer",

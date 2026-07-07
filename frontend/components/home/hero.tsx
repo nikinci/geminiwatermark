@@ -8,7 +8,7 @@ import { BeforeAfter } from "./before-after"
 import { trackDownload, trackProcessAnother, trackTryAgain } from "@/lib/analytics"
 
 export function Hero() {
-    const { upload, items, isUploading, error, remaining, fetchRemaining, reset, user } = useUpload()
+    const { upload, items, isUploading, error, remaining, limit, fetchRemaining, reset, user } = useUpload()
 
     const handleFileSelect = async (files: File[]) => {
         await upload(files)
@@ -54,7 +54,7 @@ export function Hero() {
                         </span>
                         {remaining !== null && !user?.is_pro && (
                             <span className="block mt-4 text-sm text-muted-foreground font-mono bg-white/5 inline-block px-3 py-1 rounded-md border border-white/10">
-                                Remaining credits: <span className="text-accent font-bold">{remaining}</span>/3
+                                Remaining credits: <span className="text-accent font-bold">{remaining}</span>/{limit ?? 5}
                             </span>
                         )}
                     </p>

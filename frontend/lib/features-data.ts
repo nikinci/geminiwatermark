@@ -200,7 +200,7 @@ export const FEATURES: Feature[] = [
         faq: [
             {
                 question: "Is there a limit on free use?",
-                answer: "Yes, you can process up to 3 images per day for free without any account."
+                answer: "Yes, you can process up to 5 images per day for free without any account."
             },
             {
                 question: "What if I need more?",

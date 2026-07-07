@@ -16,7 +16,7 @@ const faqs = [
     },
     {
         question: "Is it really free?",
-        answer: "Yes! You can process up to 3 images per day completely free. For unlimited images and batch processing, upgrade to Pro for $4.99/month."
+        answer: "Yes! You can process up to 5 images per day completely free. For unlimited images and batch processing, upgrade to Pro for $4.99/month."
     },
     {
         question: "Can it remove watermarks from Veo videos?",

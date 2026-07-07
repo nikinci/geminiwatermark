@@ -23,6 +23,7 @@ export function useUpload({ onFilesAccepted }: UseUploadProps = {}) {
     const [items, setItems] = useState<UploadItem[]>([]);
     const [isUploading, setIsUploading] = useState(false);
     const [remaining, setRemaining] = useState<number | null>(null);
+    const [limit, setLimit] = useState<number | null>(null);
 
     // --- Drag & Drop State ---
     const [isDragging, setIsDragging] = useState(false);
@@ -35,6 +36,7 @@ export function useUpload({ onFilesAccepted }: UseUploadProps = {}) {
         try {
             const data = await checkRemaining();
             setRemaining(data.remaining);
+            setLimit(data.limit);
         } catch (e) {
             console.error('Failed to fetch remaining:', e);
         }
@@ -292,6 +294,7 @@ export function useUpload({ onFilesAccepted }: UseUploadProps = {}) {
         reset,
         removeItem,
         remaining,
+        limit,
         user,
         fetchRemaining,
         isDragging,

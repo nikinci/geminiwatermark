@@ -37,7 +37,7 @@ export function PricingClient() {
                         <ul className="space-y-3 mb-8 flex-1">
                             <li className="flex items-center gap-2 text-sm text-gray-300">
                                 <Check className="w-4 h-4 text-accent" />
-                                3 Images per day
+                                5 Images per day
                             </li>
                             <li className="flex items-center gap-2 text-sm text-gray-300">
                                 <Check className="w-4 h-4 text-accent" />
