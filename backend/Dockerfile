@@ -12,7 +12,7 @@ RUN apt-get update && apt-get install -y \
 # Download and setup the watermark tool
 # gwt-mini: headless CLI-only build (no GUI/SDL/dbus dependencies), identical flags
 WORKDIR /opt/byewatermark
-RUN wget -q https://github.com/allenk/GeminiWatermarkTool/releases/download/v0.3.1/gwt-mini-linux-x64.zip \
+RUN wget -q https://github.com/allenk/GeminiWatermarkTool/releases/download/v0.3.2/gwt-mini-linux-x64.zip \
     && unzip gwt-mini-linux-x64.zip \
     && mv gwt-mini GeminiWatermarkTool \
     && chmod +x GeminiWatermarkTool \
